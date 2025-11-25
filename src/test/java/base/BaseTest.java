@@ -12,9 +12,9 @@ public class BaseTest
     @BeforeSuite(alwaysRun = true)
     public void setup()
     {
-           log.info("======= Test Execution Started =======");
-          MongoDBUtils. initializeMongoClient();
-          log.info("[MongoDB]  Connection initialized successfully");
+        log.info("======= Test Execution Started =======");
+        MongoDBUtils. initializeMongoClient();
+        log.info("[MongoDB]  Connection initialized successfully");
     }
 
     @AfterSuite(alwaysRun = true)
@@ -25,7 +25,7 @@ public class BaseTest
         AllureReportUtil.generateAllureReport();
 
         MongoDBUtils.closeConnection();
-        log.info(" DB setup closed");
+        log.info("DB setup closed");
 
     }
 }

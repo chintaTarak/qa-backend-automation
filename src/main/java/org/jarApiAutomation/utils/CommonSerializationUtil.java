@@ -150,7 +150,6 @@ public class CommonSerializationUtil {
         return objectMapper.convertValue(input, TypeFactory.defaultInstance().constructCollectionLikeType(List.class, cls));
     }
 
-
     public static Map<String, String> convertToFlatMap(Object request) {
         Map<String, Object> objectMap = JsonFlattener.flattenAsMap(CommonSerializationUtil.writeString(request));
         Map<String, String> flatMap = new HashMap<>();

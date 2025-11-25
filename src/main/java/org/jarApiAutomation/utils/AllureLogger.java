@@ -3,10 +3,7 @@ package org.jarApiAutomation.utils;
 import io.qameta.allure.Allure;
 import io.restassured.response.Response;
 
-/***
- * No need as of now
- */
-//
+
 public class AllureLogger
 {
 

@@ -1,6 +1,7 @@
 package authService;
 
 import io.restassured.response.Response;
+import org.jarApiAutomation.data.responseModel.auth.FetchOtpResponse;
 import org.jarApiAutomation.data.responseModel.auth.RequestOtpResponse;
 import org.jarApiAutomation.utils.ApiRequests;
 import org.jarApiAutomation.configuration.BaseUri;
@@ -23,7 +24,9 @@ public class AuthMethods {
                 .queryParams(queryParams)
                 .build();
         Response response = apiRequests.post(req);
-        return CommonSerializationUtil.readObject(response.getBody().asString(), RequestOtpResponse.class);
+        RequestOtpResponse deserializedResponse = CommonSerializationUtil.readObject(response.getBody().asString(), RequestOtpResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
     }
 
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpReq) {
@@ -32,15 +35,21 @@ public class AuthMethods {
                 .body(verifyOtpReq)
                 .build();
         Response response = apiRequests.post(req);
-        return CommonSerializationUtil.readObject(response.getBody().asString(), VerifyOtpResponse.class);
+        VerifyOtpResponse deserializedResponse = CommonSerializationUtil.readObject(response.getBody().asString(), VerifyOtpResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
     }
 
-    public Response decryptOtp(Map<String, Object> queryParams) {
+    public FetchOtpResponse fetchOtp(Map<String, Object> queryParams, Map<String, String> headers) {
         RestRequest req = RestRequest.builder()
-                .url(BaseUri.BASE_URI + AuthServiceEndpoints.V2 + AuthServiceEndpoints.VERIFY_OTP)
+                .url(BaseUri.BASE_URI + AuthServiceEndpoints.V1 + AuthServiceEndpoints.FETCH_OTP)
                 .queryParams(queryParams)
+                .headers(headers)
                 .build();
-        return apiRequests.get(req);
+        Response response = apiRequests.get(req);
+        FetchOtpResponse deserializedResponse = CommonSerializationUtil.readObject(response.getBody().asString(), FetchOtpResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
     }
 
     public Response resetOtpLimit(String countryCode, String phoneNumber) {

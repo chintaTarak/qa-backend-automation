@@ -6,13 +6,13 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
-@EqualsAndHashCode(callSuper = true)
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(callSuper = false)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class VerifyOtpResponse extends CommonResultModel {
-    private boolean success;
+
     private VerifyOtpResponseData data;
 
     @Data

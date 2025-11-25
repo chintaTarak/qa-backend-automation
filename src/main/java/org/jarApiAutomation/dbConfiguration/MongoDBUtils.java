@@ -3,10 +3,12 @@ package org.jarApiAutomation.dbConfiguration;
 import com.mongodb.ConnectionString;
 import com.mongodb.MongoClientSettings;
 import com.mongodb.client.*;
+import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
-
+import java.text.MessageFormat;
 import java.util.concurrent.TimeUnit;
 
+@Slf4j
 public class MongoDBUtils {
 
     // Volatile to ensure thread-safety
@@ -20,18 +22,22 @@ public class MongoDBUtils {
      * Initialize MongoClient singleton (lazy, thread-safe)
      */
     public static void initializeMongoClient() {
-        if (mongoClient == null) {
-            synchronized (MongoDBUtils.class) {
-                if (mongoClient == null) {
-                    mongoClient = MongoClients.create(
-                            MongoClientSettings.builder()
-                                      .applyConnectionString(new ConnectionString(MongoDBConstants.MONGO_DB_URL))
-                                    .applyToSocketSettings(builder -> builder.connectTimeout(60, TimeUnit.SECONDS))
-                                    .build()
-                    );
-                    System.out.println("MongoDB Client Initialized");
+        try {
+            if (mongoClient == null) {
+                synchronized (MongoDBUtils.class) {
+                    if (mongoClient == null) {
+                        mongoClient = MongoClients.create(
+                                MongoClientSettings.builder()
+                                          .applyConnectionString(new ConnectionString(MongoDBConstants.MONGO_DB_URL))
+                                        .applyToSocketSettings(builder -> builder.connectTimeout(60, TimeUnit.SECONDS))
+                                        .build()
+                        );
+                        log.info("MongoDB Client Initialized");
+                    }
                 }
             }
+        } catch (Exception e) {
+            log.error(MessageFormat.format("Mongo Initializing Failed: {0}", e.getStackTrace()));
         }
     }
 
@@ -84,17 +90,9 @@ public class MongoDBUtils {
             }
             return document;
         } catch (Exception e) {
-            System.err.println("Error while fetching data: " + e.getMessage());
-            e.printStackTrace();
+            log.error(MessageFormat.format("Error while fetching data: {0}", e.getStackTrace()));
             return null;
         }
-    }
-
-    /**
-     * Fetch from Auth DB
-     */
-    public static Document fetchDataFromAuth(String dbName, String collection, String filterKey, String value, String sortField) {
-        return fetchData(dbName, collection, filterKey, value, sortField);
     }
 
     /**
