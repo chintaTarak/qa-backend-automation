@@ -16,10 +16,8 @@ public class AllureReportUtil {
         String reportFolder = "allure-reports/allure-report_" + simpleDateFormat.format(new Date());
 
         try {
-            CommonUtil.executeShellCmd("mkdir -p allure-reports");
-            Thread.sleep(500);
             String command = String.format(
-                    "allure generate allure-results --clean -o %s",
+                    "allure generate allure-results --clean --single-file -o %s",
                     reportFolder
             );
             CommonUtil.executeShellCmd(command);

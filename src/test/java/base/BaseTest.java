@@ -1,19 +1,22 @@
 package base;
 
 import lombok.extern.slf4j.Slf4j;
-import org.jarApiAutomation.dbConfiguration.MongoDBUtils;
+import static org.jarApiAutomation.dbConfiguration.DataBaseFactory.*;
 import org.jarApiAutomation.utils.AllureReportUtil;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
+import org.testng.annotations.Optional;
+import org.testng.annotations.Parameters;
 
 @Slf4j
 public class BaseTest
 {
     @BeforeSuite(alwaysRun = true)
-    public void setup()
+    @Parameters("dbServer")
+    public void setup(@Optional("changejar") String dbServer)
     {
         log.info("======= Test Execution Started =======");
-        MongoDBUtils. initializeMongoClient();
+        initializeDBConnections(dbServer);
         log.info("[MongoDB]  Connection initialized successfully");
     }
 
@@ -21,11 +24,7 @@ public class BaseTest
     public void closeConnection()
     {
         log.info("======= Test Execution Finished =======");
-        /** Generate Allure report and open in browser * */
         AllureReportUtil.generateAllureReport();
-
-        MongoDBUtils.closeConnection();
-        log.info("DB setup closed");
-
+        closeAllDBConnections();
     }
 }

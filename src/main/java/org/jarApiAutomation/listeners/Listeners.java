@@ -2,29 +2,22 @@ package org.jarApiAutomation.listeners;
 
 import io.qameta.allure.testng.AllureTestNg;
 import lombok.extern.slf4j.Slf4j;
-import org.jarApiAutomation.dbConfiguration.MongoDBUtils;
 import org.jarApiAutomation.utils.AllureReportUtil;
+import org.testng.IExecutionListener;
 import org.testng.ISuite;
 import org.testng.ITestContext;
 import org.testng.ITestResult;
 
 @Slf4j
-public class Listeners extends AllureTestNg {
+public class Listeners extends AllureTestNg implements IExecutionListener {
 
     /**
      * Suite-level start: runs before the entire suite starts
      */
     @Override
     public void onStart(ISuite suite) {
+        super.onStart(suite);
         log.info("Starting Test Suite: {}", suite.getName());
-        try {
-            // Initialize MongoDB connection
-            MongoDBUtils.getClient();
-            log.info("Mongo Db Connection Initialized");
-        } catch (Exception e) {
-            log.error("Error initializing suite setup: {}", e.getMessage(), e);
-            throw new RuntimeException("Suite initialization failed", e);
-        }
     }
 
     /**
@@ -32,22 +25,8 @@ public class Listeners extends AllureTestNg {
      */
     @Override
     public void onFinish(ISuite suite) {
+        super.onFinish(suite);
         log.info("Finishing Test Suite: {}", suite.getName());
-        try {
-            // Clean up MongoDB connection
-            MongoDBUtils.closeConnection();
-            log.info("MongoDB connection closed successfully");
-        } catch (Exception e) {
-            log.error("Error closing MongoDB connection: {}", e.getMessage(), e);
-        }
-        try {
-            // Allure Report Generation
-            Thread.sleep(8000);
-            AllureReportUtil.generateAllureReport();
-            log.info("Report Generation Correctly");
-        } catch (Exception e) {
-            log.error("Error generating Allure report: {}", e.getMessage(), e);
-        }
     }
 
     /**
@@ -98,5 +77,11 @@ public class Listeners extends AllureTestNg {
         log.info("Test Status: {}", result.getStatus());
         log.info("Test Ended: {}", result.getName());
         log.info("---------------------------------------");
+    }
+
+    @Override
+    public void onExecutionFinish() {
+        log.info("Execution finished. Generating Allure Report...");
+        AllureReportUtil.generateAllureReport();
     }
 }

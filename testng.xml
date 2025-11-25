@@ -7,6 +7,7 @@
         <listener class-name="org.jarApiAutomation.listeners.Listeners"/>
         <listener class-name="org.jarApiAutomation.listeners.AnnotationTransformer"/>
     </listeners>
+    <parameter name="dbServer" value="changejar"/>
 
     <test name="Auth API Tests">
         <classes>

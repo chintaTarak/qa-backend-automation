@@ -1,11 +1,13 @@
 package org.jarApiAutomation.listeners;
 
 import io.qameta.allure.Flaky;
+import lombok.extern.slf4j.Slf4j;
 import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;
 
 import java.lang.reflect.Method;
 
+@Slf4j
 public class RetryAnalyzer implements IRetryAnalyzer {
 
     private int retryCount = 0;
@@ -16,7 +18,7 @@ public class RetryAnalyzer implements IRetryAnalyzer {
         if (!result.isSuccess()) {
             if (retryCount < MAX_RETRY_COUNT) {
                 retryCount++;
-                System.out.println("Retrying test: " + result.getName() + " | Attempt: " + retryCount);
+                log.info("Retrying test: " + result.getName() + " | Attempt: " + retryCount);
                 result.setStatus(ITestResult.SKIP);
                 return true;
             } else {

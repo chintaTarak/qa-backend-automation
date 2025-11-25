@@ -1,5 +1,6 @@
 package authService;
 
+import base.BaseTest;
 import lombok.extern.slf4j.Slf4j;
 import org.jarApiAutomation.data.requestModel.auth.VerifyOtpRequest;
 import org.jarApiAutomation.data.responseModel.auth.FetchOtpResponse;
@@ -11,7 +12,7 @@ import java.util.Map;
 import static testData.Auth.TestDataAuth.*;
 
 @Slf4j
-public class AuthServiceTest
+public class AuthServiceTest extends BaseTest
 {
     SoftAssert softAssert = new SoftAssert();
     private final AuthMethods authMethods = new AuthMethods();
