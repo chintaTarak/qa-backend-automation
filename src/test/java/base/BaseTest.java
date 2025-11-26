@@ -24,7 +24,6 @@ public class BaseTest
     public void closeConnection()
     {
         log.info("======= Test Execution Finished =======");
-        AllureReportUtil.generateAllureReport();
         closeAllDBConnections();
     }
 }
