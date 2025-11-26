@@ -12,6 +12,7 @@ import org.jarApiAutomation.data.requestModel.auth.VerifyOtpRequest;
 import org.jarApiAutomation.data.responseModel.auth.VerifyOtpResponse;
 import org.jarApiAutomation.utils.CommonSerializationUtil;
 import java.util.Map;
+import static org.jarApiAutomation.utils.CommonUtil.getApiEndPoint;
 
 public class AuthMethods {
 
@@ -20,7 +21,7 @@ public class AuthMethods {
     public RequestOtpResponse requestOTP(Map<String, Object> queryParams) {
         RestRequest req = RestRequest.builder()
                 .headers(Map.of("content-type", "application/json"))
-                .url(BaseUri.BASE_URI + AuthServiceEndpoints.V2 + AuthServiceEndpoints.REQUEST_OTP)
+                .url(getApiEndPoint(BaseUri.STAGING_BASE_URI, BaseUri.V2, AuthServiceEndpoints.REQUEST_OTP))
                 .queryParams(queryParams)
                 .build();
         Response response = apiRequests.post(req);
@@ -31,7 +32,7 @@ public class AuthMethods {
 
     public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpReq) {
         RestRequest req = RestRequest.builder()
-                .url(BaseUri.BASE_URI + AuthServiceEndpoints.V2 + AuthServiceEndpoints.VERIFY_OTP)
+                .url(getApiEndPoint(BaseUri.STAGING_BASE_URI, BaseUri.V2, AuthServiceEndpoints.VERIFY_OTP))
                 .body(verifyOtpReq)
                 .build();
         Response response = apiRequests.post(req);
@@ -42,7 +43,7 @@ public class AuthMethods {
 
     public FetchOtpResponse fetchOtp(Map<String, Object> queryParams, Map<String, String> headers) {
         RestRequest req = RestRequest.builder()
-                .url(BaseUri.BASE_URI + AuthServiceEndpoints.V1 + AuthServiceEndpoints.FETCH_OTP)
+                .url(getApiEndPoint(BaseUri.STAGING_BASE_URI, BaseUri.V1, AuthServiceEndpoints.FETCH_OTP))
                 .queryParams(queryParams)
                 .headers(headers)
                 .build();
@@ -56,7 +57,7 @@ public class AuthMethods {
         ResetOtpRequest resetOtp = new ResetOtpRequest();
         resetOtp.setMobileNumber(countryCode + phoneNumber);
         RestRequest req = RestRequest.builder()
-                .url(BaseUri.BASE_URI + AuthServiceEndpoints.V1 + AuthServiceEndpoints.RESET_OTP)
+                .url(getApiEndPoint(BaseUri.STAGING_BASE_URI, BaseUri.V1, AuthServiceEndpoints.RESET_OTP))
                 .body(resetOtp)
                 .build();
         return apiRequests.post(req);
@@ -66,7 +67,7 @@ public class AuthMethods {
         ResetOtpRequest resetOtp = new ResetOtpRequest();
         resetOtp.setMobileNumber(countryCode + phoneNumber);
         RestRequest req = RestRequest.builder()
-                .url(BaseUri.BASE_URI + AuthServiceEndpoints.V2 + AuthServiceEndpoints.RESET_VERIFY_OTP_LIMIT)
+                .url(getApiEndPoint(BaseUri.STAGING_BASE_URI, BaseUri.V2, AuthServiceEndpoints.RESET_VERIFY_OTP_LIMIT))
                 .body(resetOtp)
                 .build();
         return apiRequests.get(req);

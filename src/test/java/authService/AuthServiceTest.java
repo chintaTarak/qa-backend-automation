@@ -22,7 +22,7 @@ public class AuthServiceTest extends BaseTest
     public String accessToken;
 
     // Request OTP with Valid PhoneNumber and get reqId
-    @Test(priority = 1, dataProvider = "invalidPhoneNumbers", dataProviderClass = AuthDataProvider.class)
+    @Test(priority = 1, description = "To Request OTP", dataProvider = "invalidPhoneNumbers", dataProviderClass = AuthDataProvider.class)
     public void requestOtp(String phoneNumber) {
         try {
             RequestOtpResponse requestOtpResponse =  authMethods.requestOTP(
@@ -42,7 +42,7 @@ public class AuthServiceTest extends BaseTest
         }
     }
 
-    @Test(priority = 2)
+    @Test(priority = 2, description = "Fetching OTP From Database")
     public void fetchOtp() {
         // Verify OTP and get access token
         try {
@@ -62,7 +62,7 @@ public class AuthServiceTest extends BaseTest
         }
     }
 
-    @Test(priority = 3)
+    @Test(priority = 3, description = "Validating the OTP to Get Access Token")
     public void validateOtp() {
         // Extract Access Token
         try {
