@@ -1,4 +1,4 @@
-package authService;
+package changejar.authService;
 
 import base.BaseTest;
 import lombok.extern.slf4j.Slf4j;

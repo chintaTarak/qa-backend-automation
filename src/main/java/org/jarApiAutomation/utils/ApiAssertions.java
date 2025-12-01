@@ -48,4 +48,30 @@ public class ApiAssertions {
     public void assertAll() {
         softAssert.assertAll();
     }
+
+    // Generic equality assertion
+    public <T> void assertFieldsEquals(T actual, T expected, String fieldName) {
+        softAssert.assertEquals(
+                actual,
+                expected,
+                "Expected " + fieldName + ": " + expected + ", but found: " + actual
+        );
+    }
+
+    // Generic non-null assertion
+    public <T> void assertFieldNotNull(T actual, String fieldName) {
+        softAssert.assertNotNull(
+                actual,
+                "Expected " + fieldName + " to be not null, but was null"
+        );
+    }
+
+    // Generic boolean assertion
+    public void assertFieldTrue(boolean condition, String fieldName, String additionalMessage) {
+        softAssert.assertTrue(
+                condition,
+                "Expected " + fieldName + " to be true. " + additionalMessage
+        );
+    }
+
 }

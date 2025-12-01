@@ -1,4 +1,4 @@
-package authService;
+package changejar.authService;
 import testData.Auth.TestDataAuth;
 import org.testng.annotations.DataProvider;
 

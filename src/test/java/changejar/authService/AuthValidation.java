@@ -1,4 +1,4 @@
-package authService;
+package changejar.authService;
 
 import org.jarApiAutomation.data.responseModel.auth.FetchOtpResponse;
 import org.jarApiAutomation.data.responseModel.auth.RequestOtpResponse;

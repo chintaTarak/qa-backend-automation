@@ -8,6 +8,7 @@ import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
+import org.bson.types.ObjectId;
 
 import java.util.concurrent.TimeUnit;
 
@@ -15,7 +16,7 @@ import java.util.concurrent.TimeUnit;
 public class MongoDBUtils {
 
     // Volatile to ensure thread-safety
-    private static volatile MongoClient mongoClient;
+    private volatile MongoClient mongoClient;
     private final String uri;
 
     public MongoDBUtils(String uri) {
@@ -69,7 +70,12 @@ public class MongoDBUtils {
     public Document fetchData(String dbName, String collection, String filterKey, String value, String sortField) {
         try {
             MongoCollection<Document> dbCollection = getCollection(dbName, collection);
-            Document query = new Document(filterKey, value);
+            Document query;
+            if ("_id".equals(filterKey)) {
+                query = new Document("_id", new ObjectId(value));
+            } else {
+                query = new Document(filterKey, value);
+            }
             Document sort = new Document(sortField, -1);
 
             Document document = dbCollection.find(query)
