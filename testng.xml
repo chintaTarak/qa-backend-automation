@@ -11,7 +11,7 @@
 
     <test name="Auth API Tests">
         <classes>
-            <class name="authService.AuthServiceTest"/>
+            <class name="changejar.authService.AuthServiceTest"/>
         </classes>
     </test>
 </suite>

@@ -25,13 +25,13 @@ public class DigiGoldMethods {
         return apiRequests.post(req);
     }
 
-    public UserResponse getUser(Map<String, Object> queryParams) {
+    public Response getUser(Map <String,String> headers,Map<String, Object> queryParams) {
         RestRequest req = RestRequest.builder()
+                .headers(headers)
                 .url(getApiEndPoint(BaseUri.DIGIGOLD_BASE_URI, BaseUri.V1, DigiGoldEndpoints.GET_USERS))
                 .queryParams(queryParams)
                 .build();
-        Response response = apiRequests.get(req);
-        return CommonSerializationUtil.readObject(response.getBody().asString(), UserResponse.class);
+        return  apiRequests.get(req);
     }
 
 }

@@ -16,6 +16,7 @@ import static testData.digiGold.DigiGoldTestData.*;
 public class DigiGoldValidation extends ApiAssertions {
 
     private static final String mongoIdRegEx = "^[a-fA-F0-9]{24}$";
+    private static final String WRONG_TENANT_INFO = "wrong-x-tenant-info";
 
     public DigiGoldValidation(SoftAssert softAssert) {
         super(softAssert);
@@ -64,7 +65,7 @@ public class DigiGoldValidation extends ApiAssertions {
         assertFieldsEquals(actualStatusCode, expectedStatusCode, "Status code");
 
         // Response body assertion is skipped since the API returns an empty body when X-Tenant-Info is invalid
-        if ("wrong-x-tenant-info".equalsIgnoreCase(X_TENANT_INFO)) {
+        if (WRONG_TENANT_INFO.equalsIgnoreCase(X_TENANT_INFO)) {
             softAssert.assertAll();
             return;
         }
@@ -79,6 +80,36 @@ public class DigiGoldValidation extends ApiAssertions {
             validateCreateUserInDB(createUserRequest, validUserResponse);
         } else {
             DigiGoldCommonErrorResponse errorResponse = CommonSerializationUtil.readObject(createUserResponse.getBody().asString(), DigiGoldCommonErrorResponse.class);
+            // Validate error response body
+            assertCreateUserErrorResponse(expectedErrorCode, expectedErrorMessage, errorResponse);
+        }
+    }
+
+    public void validateGetUsers(Response getUserResponse, String X_TENANT_INFO, int expectedStatusCode, String expectedErrorCode, String expectedErrorMessage) {
+
+        int actualStatusCode = getUserResponse.getStatusCode();
+        assertFieldsEquals(actualStatusCode, expectedStatusCode, "Status code");
+
+        // Response body assertion is skipped since the API returns an empty body when X-Tenant-Info is invalid
+        if (WRONG_TENANT_INFO.equalsIgnoreCase(X_TENANT_INFO)) {
+            softAssert.assertAll();
+            return;
+        }
+
+        if (expectedStatusCode == 200) {
+            UserResponse validUserResponse = CommonSerializationUtil.readObject(getUserResponse.getBody().asString(), UserResponse.class);
+            // Validate successful response body
+            assertFieldTrue(validUserResponse.isSuccess(), "success", "Success flag is not true");
+            assertFieldsEquals(validUserResponse.getData().getId(), USER_ID, "id");
+            assertFieldsEquals(validUserResponse.getData().getUserRefId(), USER_REF_ID, "userRefId");
+            assertFieldsEquals(validUserResponse.getData().getPhoneNumber(), USER_COUNTRY_CODE + USER_PHONE_NUMBER, "phoneNumber");
+            assertFieldsEquals(validUserResponse.getData().getCountryCode(), USER_COUNTRY_CODE, "countryCode");
+            assertFieldsEquals(validUserResponse.getData().getName(), USER_FIRST_NAME + " " + USER_LAST_NAME, "name");
+            assertFieldsEquals(validUserResponse.getData().getCurrentBalance(), USER_CURRENT_BALANCE, "currentBalance");
+
+
+        } else {
+            DigiGoldCommonErrorResponse errorResponse = CommonSerializationUtil.readObject(getUserResponse.getBody().asString(), DigiGoldCommonErrorResponse.class);
             // Validate error response body
             assertCreateUserErrorResponse(expectedErrorCode, expectedErrorMessage, errorResponse);
         }
