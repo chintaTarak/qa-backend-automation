@@ -17,7 +17,7 @@ public class AuthDataProvider
                 {"+91"},                 // only country code
                 {"98765"},               // random short input
                 {"12345abcde"},
-                {TestDataAuth.PHONE_NUMBER} // Happy case
+                {TestDataAuth.TEST_PHONE_NUMBER} // Happy case
         };
     }
 }

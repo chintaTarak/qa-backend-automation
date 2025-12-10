@@ -1,4 +1,4 @@
-package org.jarApiAutomation.data.responseModel.auth;
+package org.jarApiAutomation.data.responseModel;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
@@ -14,4 +14,6 @@ public class CommonResultModel {
     private int statusCode;
     private boolean success;
     private String message;
+    private String errorMessage;
+    private String errorCode;
 }

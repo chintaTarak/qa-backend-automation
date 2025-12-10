@@ -1,7 +1,7 @@
 package org.jarApiAutomation.data.responseModel.digiGold;
 
 import lombok.Data;
-import org.jarApiAutomation.data.responseModel.auth.CommonResultModel;
+import org.jarApiAutomation.data.responseModel.CommonResultModel;
 
 import java.util.ArrayList;
 

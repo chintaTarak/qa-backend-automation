@@ -18,8 +18,7 @@ public class ApiAssertions {
     }
 
     // Common check for non-2xx
-    public void assertHttpFailure(Response response, String apiName) {
-        int statusCode = response.getStatusCode();
+    public void assertHttpFailure(int statusCode, String apiName) {
         softAssert.assertTrue(statusCode >= 400,
                 apiName + " expected failure but got success (" + statusCode + ")");
     }
@@ -71,6 +70,14 @@ public class ApiAssertions {
         softAssert.assertTrue(
                 condition,
                 "Expected " + fieldName + " to be true. " + additionalMessage
+        );
+    }
+
+    // Generic boolean assertion
+    public void assertFieldFalse(boolean condition, String fieldName, String additionalMessage) {
+        softAssert.assertFalse(
+                condition,
+                "Expected " + fieldName + " to be false. " + additionalMessage
         );
     }
 

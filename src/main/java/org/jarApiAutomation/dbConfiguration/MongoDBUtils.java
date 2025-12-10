@@ -83,9 +83,9 @@ public class MongoDBUtils {
                     .limit(1)
                     .first();  // returns first document or null if none found
             if (document != null) {
-                log.info("Fetched Document: {}", document.toJson());
+                log.info("Fetched Document: {}", document);
             } else {
-                log.info("No Document found for Query: {}", query.toJson());
+                log.info("No Document found for Query: {}", query);
             }
             return document;
         } catch (Exception e) {

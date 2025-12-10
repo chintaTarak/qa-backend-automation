@@ -7,5 +7,6 @@ public class TestDataAuth
     public static final String OTP = "123456";
     public static final String ADVERTISING_ID = "test";
     public static final String PHONE_NUMBER = "2000120005";
+    public static final String TEST_PHONE_NUMBER = "2000120001";
     public static final String ADMIN_TOKEN = "Basic cGFydG5lcl9pbmNlabnRpdmVfc2VydmljZTo1OWMyNTUxZmU0YmVmYjA4OTVlN2I3ZGI5NzMzNWRhMDRiMmI0NTlmZWViZWZlZWYxMGI5YTlkZDdlMjU3MmZi";
 }

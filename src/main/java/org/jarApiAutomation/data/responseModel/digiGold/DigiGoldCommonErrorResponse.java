@@ -1,7 +1,6 @@
 package org.jarApiAutomation.data.responseModel.digiGold;
 
 import lombok.Data;
-import org.jarApiAutomation.data.responseModel.auth.CommonResultModel;
 
 @Data
 public class DigiGoldCommonErrorResponse {
