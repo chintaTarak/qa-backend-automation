@@ -45,7 +45,7 @@ public class PostgresUtils {
             return connection;
         } catch (SQLException e) {
             log.error("Error establishing Postgres connection", e);
-            throw new RuntimeException("Failed to connect to Postgres database", e);
+            throw new RuntimeException("Failed to connect to Postgres database : Check VPN connection", e);
         }
     }
 

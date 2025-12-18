@@ -2,7 +2,6 @@ package base;
 
 import lombok.extern.slf4j.Slf4j;
 import static org.jarApiAutomation.dbConfiguration.DataBaseFactory.*;
-import org.jarApiAutomation.utils.AllureReportUtil;
 import org.testng.annotations.AfterSuite;
 import org.testng.annotations.BeforeSuite;
 import org.testng.annotations.Optional;

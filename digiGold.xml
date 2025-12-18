@@ -8,7 +8,6 @@
         <listener class-name="org.jarApiAutomation.listeners.AnnotationTransformer"/>
     </listeners>
     <parameter name="dbServer" value="digigold"/>
-
     <test name="digi Gold API Tests">
         <classes>
             <class name="digigold.DigiGoldTest"/>

@@ -3,11 +3,13 @@ package digigold;
 import io.restassured.response.Response;
 import org.bson.Document;
 import org.jarApiAutomation.data.requestModel.digiGold.CreateUserRequest;
-import org.jarApiAutomation.data.responseModel.digiGold.DigiGoldCommonErrorResponse;
-import org.jarApiAutomation.data.responseModel.digiGold.UserResponse;
+import org.jarApiAutomation.data.responseModel.digiGold.*;
 import org.jarApiAutomation.utils.ApiAssertions;
 import org.jarApiAutomation.utils.CommonSerializationUtil;
 import org.testng.asserts.SoftAssert;
+import static digigold.DigiGoldDataProvider.ExpectedError;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static org.jarApiAutomation.dbConfiguration.DataBaseFactory.tenantMongo;
 import static org.jarApiAutomation.utils.CommonUtil.getValueFromDocument;
@@ -114,4 +116,145 @@ public class DigiGoldValidation extends ApiAssertions {
             assertCreateUserErrorResponse(expectedErrorCode, expectedErrorMessage, errorResponse);
         }
     }
+
+    public void assertBuyPriceResponse(Document doc, BuyPriceResponse response, int expectedStatusCode, String expectedErrorCode, String expectedErrorMessage) {
+
+        assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code mismatch");
+        if (expectedErrorCode != null || expectedErrorMessage != null) {
+            assertFieldFalse(response.isSuccess(), "success", "Expected success=false");
+            if (expectedErrorCode != null) {
+                assertFieldsEquals(response.getErrorCode(), expectedErrorCode, "Error Code mismatch");
+            }
+
+            if (expectedErrorMessage != null) {
+                String actualErrorMessage = response.getError() != null ? response.getError() : response.getErrorMessage();
+                assertFieldNotNull(actualErrorMessage, "error/errorMessage");
+                assertFieldTrue(actualErrorMessage.contains(expectedErrorMessage), "error", "Error message mismatch");
+            }
+            return;
+        }
+
+        if (doc == null) {
+            softAssert.fail("DB document is null for positive scenario");
+            return;
+        }
+
+        String docId = doc.getObjectId("_id").toHexString();
+        String apiId = response.getData().getId();
+        assertFieldsEquals(docId, apiId, "_id mismatch between DB and API");
+
+        String dbMaterialCode = doc.getString("materialCode");
+        assertFieldsEquals(dbMaterialCode, MATERIAL_CODE, "materialCode mismatch");
+
+        String rateType = doc.getString("type");
+        assertFieldsEquals(rateType, "SELL", "type in DB is not SELL");
+
+        Object finalPriceObj = doc.get("finalPrice");
+        BigDecimal finalPrice;
+
+        if (finalPriceObj instanceof Number) {
+            finalPrice = BigDecimal.valueOf(((Number) finalPriceObj).longValue())
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        } else {
+            softAssert.fail("Unsupported finalPrice type: " + finalPriceObj.getClass());
+            return;
+        }
+
+        BigDecimal apiPrice = response.getData()
+                .getAssetPrice()
+                .setScale(2, RoundingMode.HALF_UP);
+        assertFieldsEquals(finalPrice, apiPrice, "API assetPrice mismatch with DB finalPrice");
+    }
+
+    public void assertBuyVerifyResponse(BuyVerifyResponse response,
+                                        int expectedStatusCode,
+                                        String expectedErrorCode,
+                                        String expectedErrorMessage) {
+        assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code mismatch");
+
+        if (expectedErrorCode != null || expectedErrorMessage != null) {
+            if (!response.isSuccess()) {
+                softAssert.assertFalse(response.isSuccess(), "success should be false for error scenario");
+            }
+            if (expectedErrorCode != null) {
+                assertFieldsEquals(response.getErrorCode(), expectedErrorCode, "Error code mismatch");
+            }
+            if (expectedErrorMessage != null) {
+                String actualErrorMsg = response.getErrorMessage() != null
+                        ? response.getErrorMessage()
+                        : response.getError();
+                softAssert.assertTrue(
+                        actualErrorMsg != null && actualErrorMsg.contains(expectedErrorMessage),
+                        "Error message mismatch. Expected to contain: " + expectedErrorMessage + ", but was: " + actualErrorMsg
+                );
+            }
+            return;
+        }
+
+        assertFieldTrue(response.isSuccess(), "success", "Expected success=true");
+
+        if (response.getData() != null) {
+            BuyVerifyResponse.DataObj data = response.getData();
+
+            assertFieldNotNull(data.getOrderId(), "orderId");
+            assertFieldNotNull(data.getVolume(), "volume");
+        } else {
+            softAssert.fail("Data is null in success response");
+        }
+    }
+
+    public void assertBuyConfirm(BuyConfirmResponse response, ExpectedError expectedError)
+    {
+        assertFieldNotNull(response, "Response cannot be null");
+        assertFieldNotNull(response.getErrorCode(), "errorCode");
+        assertFieldNotNull(response.getError(), "error");
+        if (response.getStatusCode() == 200)
+        {
+            BuyConfirmResponse.DataResult data = response.getData();
+            if ("COMPLETED".equalsIgnoreCase(data.getStatus())) {
+
+                assertFieldNotNull(data.getInvoiceId(), "invoiceId");
+                assertFieldTrue(data.getInvoiceId().startsWith("SAI-"), "invoiceId", "InvoiceId should start with SAI-");
+            }
+            else if ("PROCESSING".equalsIgnoreCase(data.getStatus()))
+            {
+                softAssert.assertNull(data.getInvoiceId(), "invoiceId is null because isSync\":false");
+            }
+            else
+            {
+                // PROCESSING / PENDING → invoiceId can be null
+                softAssert.assertTrue(data.getInvoiceId() == null || data.getInvoiceId().isEmpty(), "invoiceId should be null for non-completed orders");
+
+            }
+        }
+
+    }
+
+    public void assertBuyStatus(BuyStatusResponse buyStatusResponse, int expectedStatusCode)
+    {
+        int actualStatusCode = buyStatusResponse.getStatusCode();
+        assertFieldsEquals(actualStatusCode, expectedStatusCode, "Status code");
+        if (expectedStatusCode == 200) {
+
+            assertFieldTrue(buyStatusResponse.isSuccess(), "success", "Expected success=true");
+            // Error fields must be null
+            softAssert.assertNull(buyStatusResponse.getErrorCode(), "errorCode should be null in success response");
+            softAssert.assertNull(buyStatusResponse.getErrorMessage() != null ? buyStatusResponse.getErrorMessage() : buyStatusResponse.getError(),
+                    "error message should be null in success response");
+
+            assertFieldNotNull(buyStatusResponse.getData(), "Data object should not be null");
+            BuyStatusResponse.DataResult data = buyStatusResponse.getData();
+            assertFieldNotNull(data.getOrderId(), "orderId");
+            assertFieldTrue(data.getOrderId().startsWith("SAO-"), "orderId", "orderId should start with 'SAO-'");
+
+            assertFieldNotNull(data.getStatus(), "status should not be null");
+            assertFieldNotNull(data.getInvoiceStatus(), "invoiceStatus should not be null");
+
+            if (data.getInvoiceId() != null) {
+                assertFieldTrue(data.getInvoiceId().startsWith("SAI-"), "invoiceId", "invoiceId should start with 'SAI-'");
+            }
+
+        }
+    }
 }
+

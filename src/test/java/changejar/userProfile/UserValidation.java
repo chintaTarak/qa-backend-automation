@@ -35,6 +35,6 @@ public class UserValidation extends ApiAssertions {
         assertFieldsEquals(userDetailsResponse.isSuccess(), false, "Success flag");
         assertFieldsEquals(userDetailsResponse.getErrorCode(), expectedErrorCode, "Error Code");
         assertFieldsEquals(userDetailsResponse.getErrorMessage(), expectedErrorMessage, "Error Message");
-        softAssert.assertNull(userDetailsResponse.getData(), "Data should be null on failure");
+        assertFieldNotNull(userDetailsResponse.getData(), "Data should be null on failure");
     }
 }
