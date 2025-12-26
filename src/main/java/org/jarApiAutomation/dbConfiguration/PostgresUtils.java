@@ -1,10 +1,10 @@
 package org.jarApiAutomation.dbConfiguration;
 
-import lombok.extern.slf4j.Slf4j;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PostgresUtils {
@@ -16,7 +16,7 @@ public class PostgresUtils {
     /**
      * Creates PostgresUtils object with DB connection details.
      *
-     * @param url  database URL
+     * @param url database URL
      * @param user database username
      * @param pass database password
      */
@@ -27,8 +27,7 @@ public class PostgresUtils {
     }
 
     /**
-     * Gets PostgresSQL connection.
-     * Creates new connection only if not already created or closed.
+     * Gets PostgresSQL connection. Creates new connection only if not already created or closed.
      *
      * @return active DB connection
      * @throws SQLException if connection fails
@@ -45,7 +44,8 @@ public class PostgresUtils {
             return connection;
         } catch (SQLException e) {
             log.error("Error establishing Postgres connection", e);
-            throw new RuntimeException("Failed to connect to Postgres database : Check VPN connection", e);
+            throw new RuntimeException(
+                    "Failed to connect to Postgres database : Check VPN connection", e);
         }
     }
 
@@ -64,9 +64,7 @@ public class PostgresUtils {
         }
     }
 
-    /**
-     * Closes the database connection if it is open.
-     */
+    /** Closes the database connection if it is open. */
     public void disconnect() {
         try {
             if (connection != null) {

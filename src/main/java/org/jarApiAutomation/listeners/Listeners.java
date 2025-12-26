@@ -11,45 +11,35 @@ import org.testng.ITestResult;
 @Slf4j
 public class Listeners extends AllureTestNg implements IExecutionListener {
 
-    /**
-     * Suite-level start: runs before the entire suite starts
-     */
+    /** Suite-level start: runs before the entire suite starts */
     @Override
     public void onStart(ISuite suite) {
         super.onStart(suite);
         log.info("Starting Test Suite: {}", suite.getName());
     }
 
-    /**
-     * Suite-level finish: runs after the entire suite finishes
-     */
+    /** Suite-level finish: runs after the entire suite finishes */
     @Override
     public void onFinish(ISuite suite) {
         super.onFinish(suite);
         log.info("Finishing Test Suite: {}", suite.getName());
     }
 
-    /**
-     * Test-level start: before any test method in a <test> tag starts
-     */
+    /** Test-level start: before any test method in a <test> tag starts */
     @Override
     public void onStart(ITestContext context) {
         super.onStart(context);
         log.info("Starting Test Context: {}", context.getName());
     }
 
-    /**
-     * Test method started: before each test method starts
-     */
+    /** Test method started: before each test method starts */
     @Override
     public void onTestStart(ITestResult result) {
         super.onTestStart(result);
         log.info("Test Started: {}", result.getName());
     }
 
-    /**
-     * Test method success
-     */
+    /** Test method success */
     @Override
     public void onTestSuccess(ITestResult result) {
         super.onTestSuccess(result);
@@ -57,9 +47,7 @@ public class Listeners extends AllureTestNg implements IExecutionListener {
         onTestEnd(result);
     }
 
-    /**
-     * Test method failure
-     */
+    /** Test method failure */
     @Override
     public void onTestFailure(ITestResult result) {
         super.onTestFailure(result);
@@ -70,9 +58,7 @@ public class Listeners extends AllureTestNg implements IExecutionListener {
         onTestEnd(result);
     }
 
-    /**
-     * Common hook for ending a test method
-     */
+    /** Common hook for ending a test method */
     private void onTestEnd(ITestResult result) {
         log.info("Test Status: {}", result.getStatus());
         log.info("Test Ended: {}", result.getName());

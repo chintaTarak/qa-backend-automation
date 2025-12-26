@@ -18,8 +18,8 @@ public class VerifyOtpRequest {
         private String advertisingId;
     }
 
-    public static VerifyOtpRequest verifyOtpPayload(String countryCode, String phoneNumber,
-                                                    String otp, String reqId) {
+    public static VerifyOtpRequest verifyOtpPayload(
+            String countryCode, String phoneNumber, String otp, String reqId) {
         return VerifyOtpRequest.builder()
                 .countryCode(countryCode)
                 .phoneNumber(phoneNumber)
@@ -28,5 +28,3 @@ public class VerifyOtpRequest {
                 .build();
     }
 }
-
-

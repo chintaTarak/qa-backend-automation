@@ -4,8 +4,7 @@ import lombok.Data;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
 
 @Data
-public class BuyConfirmResponse extends CommonResultModel
-{
+public class BuyConfirmResponse extends CommonResultModel {
     private boolean success;
     private DataResult data;
 

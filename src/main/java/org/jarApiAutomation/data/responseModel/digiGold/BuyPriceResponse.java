@@ -1,16 +1,13 @@
 package org.jarApiAutomation.data.responseModel.digiGold;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.math.BigDecimal;
+import java.util.List;
 import lombok.Data;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
 
-
-import java.math.BigDecimal;
-import java.util.List;
-
 @Data
-public class BuyPriceResponse extends CommonResultModel
-{
+public class BuyPriceResponse extends CommonResultModel {
 
     private boolean success;
     private DataObject data;

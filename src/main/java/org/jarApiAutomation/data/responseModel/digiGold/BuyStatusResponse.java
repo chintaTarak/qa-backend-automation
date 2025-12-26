@@ -2,9 +2,9 @@ package org.jarApiAutomation.data.responseModel.digiGold;
 
 import lombok.Data;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
+
 @Data
-public class BuyStatusResponse extends CommonResultModel
-{
+public class BuyStatusResponse extends CommonResultModel {
     private boolean success;
     private DataResult data;
 

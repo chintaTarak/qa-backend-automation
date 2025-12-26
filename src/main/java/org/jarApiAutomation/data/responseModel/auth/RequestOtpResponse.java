@@ -18,4 +18,3 @@ public class RequestOtpResponse extends CommonResultModel {
         private int length;
     }
 }
-

@@ -1,8 +1,8 @@
 package org.jarApiAutomation.dbConfiguration;
 
-import lombok.extern.slf4j.Slf4j;
-
 import static org.jarApiAutomation.dbConfiguration.DBConstants.*;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class DataBaseFactory {
@@ -52,9 +52,7 @@ public class DataBaseFactory {
         changeJarMongo().initializeClient();
     }
 
-    /**
-     * Initializes DigiGold PostgresDB connection (Singleton)
-     */
+    /** Initializes DigiGold PostgresDB connection (Singleton) */
     public static synchronized void initDigiPostgresDB(String url, String user, String pass) {
         if (digiPostgres == null) {
             digiPostgres = new PostgresUtils(url, user, pass);
@@ -91,10 +89,7 @@ public class DataBaseFactory {
         return digiPostgres;
     }
 
-    /**
-     * Gracefully closes all initialized DB connections
-     * This should be called in @AfterSuite
-     */
+    /** Gracefully closes all initialized DB connections This should be called in @AfterSuite */
     public static void closeAllDBConnections() {
         if (digiGoldMongo != null) digiGoldMongo.closeConnection();
         if (tenantMongo != null) tenantMongo.closeConnection();
@@ -120,8 +115,9 @@ public class DataBaseFactory {
                 initChangeJarMongoDB(CHANGEJAR_MONGO_DB_URL);
                 break;
             default:
-                log.warn("Unknown DB server specified: {}. No DB connections initialized.", dbServer);
+                log.warn(
+                        "Unknown DB server specified: {}. No DB connections initialized.",
+                        dbServer);
         }
     }
-
 }

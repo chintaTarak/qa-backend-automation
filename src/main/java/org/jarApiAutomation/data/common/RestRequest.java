@@ -1,9 +1,8 @@
 package org.jarApiAutomation.data.common;
 
+import java.util.Map;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
-
-import java.util.Map;
 
 @AllArgsConstructor
 @NoArgsConstructor

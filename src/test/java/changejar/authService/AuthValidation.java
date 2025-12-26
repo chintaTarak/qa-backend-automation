@@ -3,13 +3,12 @@ package changejar.authService;
 import org.jarApiAutomation.data.responseModel.auth.FetchOtpResponse;
 import org.jarApiAutomation.data.responseModel.auth.RequestOtpResponse;
 import org.jarApiAutomation.data.responseModel.auth.VerifyOtpResponse;
-import org.testng.asserts.SoftAssert;
 import org.jarApiAutomation.utils.ApiAssertions;
+import org.testng.asserts.SoftAssert;
 
 public class AuthValidation extends ApiAssertions {
 
-    public AuthValidation(SoftAssert softAssert)
-    {
+    public AuthValidation(SoftAssert softAssert) {
         super(softAssert);
     }
 
@@ -30,7 +29,8 @@ public class AuthValidation extends ApiAssertions {
         softAssert.assertTrue(response.isSuccess(), "VerifyOTP should return true but got false");
         // If success=true, then validate fields
         softAssert.assertNotNull(response.getData(), "Data must not be null when success=true");
-        softAssert.assertNotNull(response.getData().getAccessToken(), "AccessToken must not be null");
+        softAssert.assertNotNull(
+                response.getData().getAccessToken(), "AccessToken must not be null");
         softAssert.assertAll();
     }
 

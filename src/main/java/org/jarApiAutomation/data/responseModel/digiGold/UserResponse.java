@@ -1,9 +1,8 @@
 package org.jarApiAutomation.data.responseModel.digiGold;
 
+import java.util.ArrayList;
 import lombok.Data;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
-
-import java.util.ArrayList;
 
 @Data
 public class UserResponse extends CommonResultModel {

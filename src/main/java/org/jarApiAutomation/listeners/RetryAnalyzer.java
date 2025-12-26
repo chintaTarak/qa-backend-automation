@@ -1,11 +1,10 @@
 package org.jarApiAutomation.listeners;
 
 import io.qameta.allure.Flaky;
+import java.lang.reflect.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.testng.IRetryAnalyzer;
 import org.testng.ITestResult;
-
-import java.lang.reflect.Method;
 
 @Slf4j
 public class RetryAnalyzer implements IRetryAnalyzer {

@@ -5,19 +5,14 @@ import lombok.Data;
 
 @Data
 @Builder
-public class BuyConfirmRequest
-{
+public class BuyConfirmRequest {
     private String userId;
     private String orderId;
     private String code;
     private Boolean isSync;
 
     public static BuyConfirmRequest buyConfirmPayload(
-            String userId,
-            String orderId,
-            String code,
-            Boolean isSync
-    ) {
+            String userId, String orderId, String code, Boolean isSync) {
         return BuyConfirmRequest.builder()
                 .userId(userId)
                 .orderId(orderId)

@@ -13,14 +13,18 @@ public class CreateUserRequest {
     private boolean isKycCompleted;
     private String userRefId;
 
-    public static CreateUserRequest createUser(String firstName, String lastName, String phoneNumber,
-                                               String countryCode,
-                                               String userRefId) {
+    public static CreateUserRequest createUser(
+            String firstName,
+            String lastName,
+            String phoneNumber,
+            String countryCode,
+            String userRefId) {
         return CreateUserRequest.builder()
                 .firstName(firstName)
                 .lastName(lastName)
                 .phoneNumber(phoneNumber)
-                .countryCode(countryCode).userRefId(userRefId)
+                .countryCode(countryCode)
+                .userRefId(userRefId)
                 .build();
     }
 }
