@@ -54,21 +54,15 @@ public class ApiRequests {
 
     public Response post(RestRequest req) {
         log.info("POST Request: " + CommonSerializationUtil.writeString(req));
-        Response response =
-                buildRequest(req)
-                        .when()
-                        .post(req.getUrl())
-                        .then()
-                        .log()
-                        .body()
-                        .log()
-                        .ifValidationFails()
-                        .extract()
-                        .response();
-        log.info(
-                "POST Response: Status Code: {}, Body: {}",
-                response.getStatusCode(),
-                CommonSerializationUtil.writeString(response.getBody().asString()));
+        Response response = buildRequest(req)
+                .when()
+                .post(req.getUrl())
+                .then()
+                .log()
+                .ifValidationFails()
+                .extract()
+                .response();
+        log.info("POST Response: Status Code: {}, Body: {}", response.getStatusCode(), CommonSerializationUtil.writeString(response.getBody().asString()));
         return response;
     }
 

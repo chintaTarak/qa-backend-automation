@@ -1,8 +1,10 @@
 package org.jarApiAutomation.data.responseModel.digiGold;
 
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class BuyConfirmResponse extends CommonResultModel {
     private boolean success;

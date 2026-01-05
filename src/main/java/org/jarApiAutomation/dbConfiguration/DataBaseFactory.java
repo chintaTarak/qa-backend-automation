@@ -12,6 +12,7 @@ public class DataBaseFactory {
     private static volatile MongoDBUtils tenantMongo;
     private static volatile MongoDBUtils changeJarMongo;
     private static volatile PostgresUtils digiPostgres;
+    private static volatile PostgresUtils digiSDKPostgres;
 
     /**
      * Initializes DigiGold MongoDB connection (Singleton)
@@ -62,6 +63,17 @@ public class DataBaseFactory {
     }
 
     /**
+     * Initializes DigiGold SDK PostgresDB connection (Singleton)
+     */
+    public static synchronized void initDigiSDKPostgresDB(String url, String user, String pass) {
+        if (digiSDKPostgres == null) {
+            digiSDKPostgres = new PostgresUtils(url, user, pass);
+            log.info("[DB Init] DigiGold SDK Postgres initialized");
+        }
+        digiSDKPostgres.getConnection();
+    }
+
+    /**
      * @return DigiGold MongoDB client (already initialized)
      */
     public static MongoDBUtils digiGoldMongo() {
@@ -89,12 +101,23 @@ public class DataBaseFactory {
         return digiPostgres;
     }
 
-    /** Gracefully closes all initialized DB connections This should be called in @AfterSuite */
+    /**
+     * @return DigiGold SDK Postgres client (already initialized)
+     */
+    public static PostgresUtils digiSDKPostgres() {
+        return digiSDKPostgres;
+    }
+
+    /**
+     * Gracefully closes all initialized DB connections
+     * This should be called in @AfterSuite
+     */
     public static void closeAllDBConnections() {
         if (digiGoldMongo != null) digiGoldMongo.closeConnection();
         if (tenantMongo != null) tenantMongo.closeConnection();
         if (changeJarMongo != null) changeJarMongo.closeConnection();
         if (digiPostgres != null) digiPostgres.disconnect();
+        if (digiSDKPostgres != null) digiSDKPostgres.disconnect();
         log.info("[DB Close] All database connections closed");
     }
 
@@ -109,6 +132,7 @@ public class DataBaseFactory {
             case "digigold":
                 initDigiGoldMongoDB(DIGIGOLD_MONGO_DB_URL);
                 initDigiPostgresDB(DIGIGOLD_PG_URL, DIGIGOLD_PG_USER, DIGIGOLD_PG_PWD);
+                initDigiSDKPostgresDB(DIGIGOLDSDK_PG_URL, DIGIGOLD_PG_USER, DIGIGOLD_PG_PWD);
                 initTenantMongoDB(TENANTS_MONGO_DB_URL);
                 break;
             case "changejar":

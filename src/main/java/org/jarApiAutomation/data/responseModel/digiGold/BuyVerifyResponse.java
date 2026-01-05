@@ -3,9 +3,11 @@ package org.jarApiAutomation.data.responseModel.digiGold;
 import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 @NoArgsConstructor
 @AllArgsConstructor

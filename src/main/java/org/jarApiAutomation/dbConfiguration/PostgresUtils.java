@@ -1,9 +1,7 @@
 package org.jarApiAutomation.dbConfiguration;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.ResultSet;
-import java.sql.SQLException;
+import java.sql.*;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -55,12 +53,18 @@ public class PostgresUtils {
      * @param sql SQL query to execute
      * @return ResultSet containing query result
      */
-    public ResultSet query(String sql) {
+    public ResultSet query(String sql, Object... params) {
         try {
-            return getConnection().createStatement().executeQuery(sql);
+            PreparedStatement ps = getConnection().prepareStatement(sql);
+
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+
+            return ps.executeQuery();
         } catch (SQLException e) {
-            log.error("Error executing query: {}", sql, e);
-            return null;
+            log.error("Error executing prepared query: {}", sql, e);
+            throw new RuntimeException("DB query failed", e);
         }
     }
 

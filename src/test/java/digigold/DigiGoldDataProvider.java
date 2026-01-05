@@ -2,6 +2,8 @@ package digigold;
 
 import static digigold.DigiGoldDataProvider.ExpectedError.*;
 import static org.jarApiAutomation.data.requestModel.digiGold.CreateUserRequest.createUser;
+import static org.jarApiAutomation.data.requestModel.digiGold.SellConfirmRequest.sellConfirmRequest;
+import static org.jarApiAutomation.data.requestModel.digiGold.SellVerifyRequest.sellVerifyRequest;
 import static testData.digiGold.DigiGoldTestData.*;
 
 import java.math.BigDecimal;
@@ -25,24 +27,28 @@ public class DigiGoldDataProvider {
         FORBIDDEN(null, null, 403),
         INVALID_USER_REF("20023", "User ref id or phone number is required", 400),
         USER_NOT_EXIST("20014", "User does not exist", 400),
-        QUERY_PARAM_MISSING("10001", "Required query parameter userId is not present", 400),
+        QUERY_PARAM_MISSING("10001", null, 400),
         INVALID_MATERIAL_CODE("30010", "Invalid material code", 400),
         MATERIAL_CODE_REQUIRED("30011", "Material code is required", 400),
         INVALID_RATE_ID("30010", "Invalid rate id", 400),
         INVALID_AMOUNT("30001", "Invalid amount", 400),
         INVALID_QUANTITY("30002", "Invalid quantity", 400),
-        MATERIAL_NOT_COMMISSIONED("10069", "Material is not commissioned", 400),
+        MATERIAL_NOT_COMMISSIONED("10069", "Material is not commissioned",400 ),
         USERID_REQUIRED("10002", "Field userId is required", 400),
         AMOUNT_REQUIRED("10002", "Field amount is required", 400),
-        AMOUNT_ZER0("10136", "Amount can not be zero", 400),
-        INVALID_VOLUME("10110", "Invalid volume", 400),
+        AMOUNT_ZER0("10136","Amount can not be zero",400),
+        VOLUME_ZER0("10135","Volume can not be zero",400),
+        NEGATIVE_VOLUME("10002","Volume should be greater than 0",400),
+        NEGATIVE_AMOUNT("10002","Amount should be greater than 0",400),
+        INVALID_VOLUME("10110","Invalid volume",400),
         MERCHANT_ORDER_ALREADY_EXIST("10108", "already exist", 400),
         ORDER_NOT_FOUND("10002", "Field orderId is required", 400),
-        INVALID_RATE("10105", "Invalid rate id INVALID_RATE", 400),
-        SALE_ORDER_DRAFT("10052", "Sale order is not in DRAFT status", 400),
-        SALE_ORDER_NOT_FOUND("10051", "Sale order  not found", 400),
-        ID_PHONE_REQUIRED("20013", "User id or phone number is required", 400),
-        ORDER_ALREADY_CONFIRMED("10109", "Order already confirmed", 400);
+        INVALID_RATE("10105","Invalid rate id INVALID_RATE",400),
+        SALE_ORDER_DRAFT("10052","Sale order is not in DRAFT status",400),
+        SALE_ORDER_NOT_FOUND("10051","Sale order  not found",400),
+        ID_PHONE_REQUIRED("20013","User id or phone number is required",400),
+        ORDER_ALREADY_CONFIRMED("10109", "Order already confirmed", 400),
+        INVALID_ORDER_ID("10028", "Purchase order INVALID_ORDER_ID not found", 400);
 
         private final String errorCode;
         private final String errorMessage;
@@ -406,6 +412,74 @@ public class DigiGoldDataProvider {
             {null, null, X_TENANT_INFO, ACCESS_DENIED},
             /* ================= VALID BUY STATUS ================= */
             {validOrderId, USER_ID, X_TENANT_INFO, null}
+        };
+    }
+
+    @DataProvider(name = "sellPriceScenarios")
+    public Object[][] sellPrice() {
+        return new Object[][]{
+                // Invalid Material Code & Valid Tenant Info
+                {"invalid-material-code", X_TENANT_INFO, 400, MATERIAL_NOT_COMMISSIONED},
+                // Valid Material Code & Missing Tenant Info
+                {MATERIAL_CODE, null, 400, ACCESS_DENIED},
+                // Missing Material Code & Missing Tenant Info
+                {null, null, 400, QUERY_PARAM_MISSING},
+                // Invalid Material Code & Missing Tenant Info
+                {"invalid-material-code", null, 400, ACCESS_DENIED},
+                // Valid Material Code & Valid Tenant Info
+                {MATERIAL_CODE, X_TENANT_INFO, 200, null}
+        };
+    }
+
+
+    @DataProvider(name = "sellVerifyScenarios")
+    public Object[][] sellVerify(ITestContext context) {
+        String rateId = (String) context.getAttribute("rateId");
+        log.info("Rate Id:- {}", rateId);
+        return new Object[][]{
+                // Invalid Rate Id
+                {sellVerifyRequest("INVALID_RATE", SELL_USER_ID, new BigDecimal("0.001"), new BigDecimal("7.40"), MATERIAL_CODE, "GoldSell-" + System.currentTimeMillis() + "-" + (System.nanoTime() % 100000), CALCULATION_TYPE_AMOUNT), X_TENANT_INFO, 400, INVALID_RATE},
+                // Invalid User Id
+                {sellVerifyRequest(rateId, "INVALID_USER", new BigDecimal("0.001"), new BigDecimal("7.40"), MATERIAL_CODE, "GoldSell-" + System.currentTimeMillis() + "-" + (System.nanoTime() % 100000), CALCULATION_TYPE_AMOUNT), X_TENANT_INFO, 400, USER_NOT_EXIST},
+                // Negative Amount
+                {sellVerifyRequest(rateId, SELL_USER_ID, new BigDecimal("0.001"), new BigDecimal(0), MATERIAL_CODE, "GoldSell-" + System.currentTimeMillis() + "-" + (System.nanoTime() % 100000), CALCULATION_TYPE_AMOUNT), X_TENANT_INFO, 400, VOLUME_ZER0},
+                // Missing Volume (BY_QUANTITY)
+                {sellVerifyRequest(rateId, SELL_USER_ID, new BigDecimal(0), BigDecimal.ZERO, MATERIAL_CODE, "GoldSell-" + System.currentTimeMillis() + "-" + (System.nanoTime() % 100000), CALCULATION_TYPE_QUANTITY), X_TENANT_INFO, 400, VOLUME_ZER0},
+                // Material Not Commissioned
+                {sellVerifyRequest(rateId, SELL_USER_ID, new BigDecimal("0.001"), new BigDecimal("7.40"), "invalid-material-code", "GoldSell-" + System.currentTimeMillis() + "-" + (System.nanoTime() % 100000), CALCULATION_TYPE_AMOUNT), X_TENANT_INFO, 400, MATERIAL_NOT_COMMISSIONED},
+                // Happy Case
+                {sellVerifyRequest(rateId, SELL_USER_ID, new BigDecimal("0.001"), new BigDecimal("7.40"), MATERIAL_CODE, "GoldSell-" + System.currentTimeMillis() + "-" + (System.nanoTime() % 100000), CALCULATION_TYPE_AMOUNT), X_TENANT_INFO, 200, null}
+        };
+    }
+
+    @DataProvider(name = "sellConfirmScenarios")
+    public Object[][] sellConfirm(ITestContext context) {
+        String orderId = (String) context.getAttribute("orderId");
+        log.info("Order Id:- {}", orderId);
+        return new Object[][]{
+                // Invalid UserId
+                {sellConfirmRequest("INVALID_USER_ID", orderId, MATERIAL_CODE, true), X_TENANT_INFO, 400, USER_NOT_EXIST},
+                // Invalid orderId
+                {sellConfirmRequest(SELL_USER_ID, "INVALID_ORDER_ID", MATERIAL_CODE, true), X_TENANT_INFO, 400, INVALID_ORDER_ID},
+                // Valid Request & Without Header
+                {sellConfirmRequest(SELL_USER_ID, orderId, MATERIAL_CODE, true), null, 400, ACCESS_DENIED},
+                // Happy Case
+                {sellConfirmRequest(SELL_USER_ID, orderId, MATERIAL_CODE, true), X_TENANT_INFO, 200, null},
+        };
+    }
+
+    @DataProvider(name = "sellStatusScenarios")
+    public Object[][] sellStatus(ITestContext context) {
+        String orderId = (String) context.getAttribute("orderId");
+        return new Object[][]{
+                // Invalid Order ID & Valid user Id
+                {"INVALID_ORDER_ID", SELL_USER_ID, X_TENANT_INFO, 400, INVALID_ORDER_ID},
+                // Missing Order ID & Valid user Id
+                {orderId, "INVALID_USER_ID", X_TENANT_INFO, 400, USER_NOT_EXIST},
+                // Valid Order ID & Missing user Id
+                {orderId, SELL_USER_ID, null, 400, ACCESS_DENIED},
+                // Happy Case
+                {orderId, SELL_USER_ID, X_TENANT_INFO, 200, null},
         };
     }
 }

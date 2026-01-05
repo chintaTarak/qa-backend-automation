@@ -2,8 +2,10 @@ package org.jarApiAutomation.data.responseModel.digiGold;
 
 import java.util.ArrayList;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
 
+@EqualsAndHashCode(callSuper = true)
 @Data
 public class UserResponse extends CommonResultModel {
     private boolean success;
