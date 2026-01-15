@@ -62,9 +62,7 @@ public class DataBaseFactory {
         digiPostgres.getConnection();
     }
 
-    /**
-     * Initializes DigiGold SDK PostgresDB connection (Singleton)
-     */
+    /** Initializes DigiGold SDK PostgresDB connection (Singleton) */
     public static synchronized void initDigiSDKPostgresDB(String url, String user, String pass) {
         if (digiSDKPostgres == null) {
             digiSDKPostgres = new PostgresUtils(url, user, pass);
@@ -108,10 +106,7 @@ public class DataBaseFactory {
         return digiSDKPostgres;
     }
 
-    /**
-     * Gracefully closes all initialized DB connections
-     * This should be called in @AfterSuite
-     */
+    /** Gracefully closes all initialized DB connections This should be called in @AfterSuite */
     public static void closeAllDBConnections() {
         if (digiGoldMongo != null) digiGoldMongo.closeConnection();
         if (tenantMongo != null) tenantMongo.closeConnection();

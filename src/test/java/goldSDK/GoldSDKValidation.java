@@ -1,6 +1,11 @@
 package goldSDK;
 
-import io.restassured.response.Response;
+import static org.jarApiAutomation.dbConfiguration.DBConstants.TENANTS_DB;
+import static org.jarApiAutomation.dbConfiguration.DBConstants.TENANT_USERS_COLLECTION;
+import static org.jarApiAutomation.dbConfiguration.DataBaseFactory.tenantMongo;
+import static org.jarApiAutomation.utils.CommonUtil.getValueFromDocument;
+import static testData.goldSDK.GoldSDKTestData.*;
+
 import org.bson.Document;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
@@ -8,14 +13,7 @@ import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.UserAuthResponse;
 import org.jarApiAutomation.utils.ApiAssertions;
-import org.jarApiAutomation.utils.CommonSerializationUtil;
 import org.testng.asserts.SoftAssert;
-
-import static org.jarApiAutomation.dbConfiguration.DBConstants.TENANTS_DB;
-import static org.jarApiAutomation.dbConfiguration.DBConstants.TENANT_USERS_COLLECTION;
-import static org.jarApiAutomation.dbConfiguration.DataBaseFactory.tenantMongo;
-import static org.jarApiAutomation.utils.CommonUtil.getValueFromDocument;
-import static testData.goldSDK.GoldSDKTestData.*;
 
 public class GoldSDKValidation extends ApiAssertions {
 
@@ -23,15 +21,31 @@ public class GoldSDKValidation extends ApiAssertions {
         super(softAssert);
     }
 
-    public void assertCreateUserSuccessFullResponse(CreateUserResponse createUserResponse, CreateUserRequest createUserRequest) {
+    public void assertCreateUserSuccessFullResponse(
+            CreateUserResponse createUserResponse, CreateUserRequest createUserRequest) {
         assertFieldNotNull(createUserResponse.getData().getId(), "id is Null");
-        assertFieldsEquals(createUserResponse.getData().getUserRefId(), createUserRequest.getUserRefId(), "UserRefId");
-        assertFieldsEquals(createUserResponse.getData().getCountryCode(), createUserRequest.getCountryCode(), "CountryCode");
-        assertFieldsEquals(createUserResponse.getData().getPhoneNumber(), createUserRequest.getCountryCode() + createUserRequest.getPhoneNumber(), "PhoneNumber");
-        assertFieldsEquals(createUserResponse.getData().getName(), createUserRequest.getFirstName() + " " + createUserRequest.getLastName(), "Name");
+        assertFieldsEquals(
+                createUserResponse.getData().getUserRefId(),
+                createUserRequest.getUserRefId(),
+                "UserRefId");
+        assertFieldsEquals(
+                createUserResponse.getData().getCountryCode(),
+                createUserRequest.getCountryCode(),
+                "CountryCode");
+        assertFieldsEquals(
+                createUserResponse.getData().getPhoneNumber(),
+                createUserRequest.getCountryCode() + createUserRequest.getPhoneNumber(),
+                "PhoneNumber");
+        assertFieldsEquals(
+                createUserResponse.getData().getName(),
+                createUserRequest.getFirstName() + " " + createUserRequest.getLastName(),
+                "Name");
     }
 
-    public void assertCreateUserErrorResponse(String expectedErrorCode, String expectedErrorMessage, CommonResultModel actualResponse) {
+    public void assertCreateUserErrorResponse(
+            String expectedErrorCode,
+            String expectedErrorMessage,
+            CommonResultModel actualResponse) {
         assertFieldsEquals(actualResponse.isSuccess(), false, "Success flag");
         assertFieldsEquals(actualResponse.getErrorCode(), expectedErrorCode, "Error Code");
         assertFieldsEquals(actualResponse.getMessage(), expectedErrorMessage, "Error Message");
@@ -41,15 +55,27 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldNotNull(userAuthResponse.getData().getAccessToken(), "accessToken");
         assertFieldNotNull(userAuthResponse.getData().getRefreshToken(), "refreshToken");
     }
+
     public void assertFetchUserResponse(GetUserResponse getUserResponse) {
         assertFieldsEquals(getUserResponse.getData().getUserId(), USER_ID, "userId");
         assertFieldsEquals(getUserResponse.getData().getUserRefId(), USER_REF_ID, "userRefId");
-        assertFieldsEquals(getUserResponse.getData().getPhoneNumber(), USER_COUNTRY_CODE + USER_PHONE_NUMBER, "phoneNumber");
+        assertFieldsEquals(
+                getUserResponse.getData().getPhoneNumber(),
+                USER_COUNTRY_CODE + USER_PHONE_NUMBER,
+                "phoneNumber");
     }
 
-    public void validateCreateUserInDB(CreateUserRequest createUserRequest, CreateUserResponse createUserResponse) {
+    public void validateCreateUserInDB(
+            CreateUserRequest createUserRequest, CreateUserResponse createUserResponse) {
         // Fetch the document from MongoDB
-        Document doc = tenantMongo().fetchData(TENANTS_DB, TENANT_USERS_COLLECTION, "_id", createUserResponse.getData().getId(), "_id");
+        Document doc =
+                tenantMongo()
+                        .fetchData(
+                                TENANTS_DB,
+                                TENANT_USERS_COLLECTION,
+                                "_id",
+                                createUserResponse.getData().getId(),
+                                "_id");
         // Extract fields from the document
         String firstName = getValueFromDocument(doc, "firstName");
         String lastName = getValueFromDocument(doc, "lastName");
@@ -63,23 +89,34 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldsEquals(firstName, createUserRequest.getFirstName(), "FirstName");
         assertFieldsEquals(lastName, createUserRequest.getLastName(), "LastName");
         assertFieldsEquals(countryCode, createUserRequest.getCountryCode(), "CountryCode");
-        assertFieldsEquals(phoneNumber, createUserRequest.getCountryCode() + createUserRequest.getPhoneNumber(), "PhoneNumber");
+        assertFieldsEquals(
+                phoneNumber,
+                createUserRequest.getCountryCode() + createUserRequest.getPhoneNumber(),
+                "PhoneNumber");
     }
 
-    public void validateUserCreation(CreateUserRequest createUserRequest, CreateUserResponse response, GoldSDKDataProvider.ExpectedError expectedError) {
-        int expectedStatusCode = expectedError == null ? 200 : expectedError.getExpectedStatusCode();
+    public void validateUserCreation(
+            CreateUserRequest createUserRequest,
+            CreateUserResponse response,
+            GoldSDKDataProvider.ExpectedError expectedError) {
+        int expectedStatusCode =
+                expectedError == null ? 200 : expectedError.getExpectedStatusCode();
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-            softAssert.assertFalse(response.isSuccess(), "success should be false for error scenario");
-            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch"
-            );
-            String actualErrorMsg = response.getErrorMessage() != null ? response.getErrorMessage() : response.getError();
+            softAssert.assertFalse(
+                    response.isSuccess(), "success should be false for error scenario");
+            assertFieldsEquals(
+                    response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
+            String actualErrorMsg =
+                    response.getErrorMessage() != null
+                            ? response.getErrorMessage()
+                            : response.getError();
 
             softAssert.assertTrue(
-                    actualErrorMsg != null && actualErrorMsg.contains(expectedError.getErrorMessage()),
-                    "Error message mismatch"
-            );
+                    actualErrorMsg != null
+                            && actualErrorMsg.contains(expectedError.getErrorMessage()),
+                    "Error message mismatch");
             return;
         }
         //  SUCCESS FLOW
@@ -88,16 +125,25 @@ public class GoldSDKValidation extends ApiAssertions {
         validateCreateUserInDB(createUserRequest, response);
     }
 
-    public void validateUserAuth(UserAuthResponse response, GoldSDKDataProvider.ExpectedError expectedError) {
-        int expectedStatusCode = expectedError == null ? 200 : expectedError.getExpectedStatusCode();
+    public void validateUserAuth(
+            UserAuthResponse response, GoldSDKDataProvider.ExpectedError expectedError) {
+        int expectedStatusCode =
+                expectedError == null ? 200 : expectedError.getExpectedStatusCode();
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
-        if(expectedStatusCode != 200) {
-            softAssert.assertFalse(response.isSuccess(), "success should be false for error scenario");
-            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch"
-            );
-            String actualErrorMsg = response.getErrorMessage() != null ? response.getErrorMessage() : response.getError();
-            softAssert.assertTrue(actualErrorMsg != null && actualErrorMsg.contains(expectedError.getErrorMessage()), "Error message mismatch");
+        if (expectedStatusCode != 200) {
+            softAssert.assertFalse(
+                    response.isSuccess(), "success should be false for error scenario");
+            assertFieldsEquals(
+                    response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
+            String actualErrorMsg =
+                    response.getErrorMessage() != null
+                            ? response.getErrorMessage()
+                            : response.getError();
+            softAssert.assertTrue(
+                    actualErrorMsg != null
+                            && actualErrorMsg.contains(expectedError.getErrorMessage()),
+                    "Error message mismatch");
             return;
         }
         // SUCCESS FLOW
@@ -105,15 +151,26 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldNotNull(response.getData(), "Refresh Token response data");
         assertUserAuthResponse(response);
     }
-    public void validateGetUsers(GetUserResponse response, GoldSDKDataProvider.ExpectedError expectedError) {
-        int expectedStatusCode = expectedError == null ? 200 : expectedError.getExpectedStatusCode();
+
+    public void validateGetUsers(
+            GetUserResponse response, GoldSDKDataProvider.ExpectedError expectedError) {
+        int expectedStatusCode =
+                expectedError == null ? 200 : expectedError.getExpectedStatusCode();
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-            softAssert.assertFalse(response.isSuccess(), "success should be false for error scenario");
-            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
-            String actualErrorMsg = response.getErrorMessage() != null ? response.getErrorMessage() : response.getError();
-            softAssert.assertTrue(actualErrorMsg != null && actualErrorMsg.contains(expectedError.getErrorMessage()), "Error message mismatch");
+            softAssert.assertFalse(
+                    response.isSuccess(), "success should be false for error scenario");
+            assertFieldsEquals(
+                    response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
+            String actualErrorMsg =
+                    response.getErrorMessage() != null
+                            ? response.getErrorMessage()
+                            : response.getError();
+            softAssert.assertTrue(
+                    actualErrorMsg != null
+                            && actualErrorMsg.contains(expectedError.getErrorMessage()),
+                    "Error message mismatch");
             return;
         }
         // SUCCESS FLOW
@@ -122,15 +179,25 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFetchUserResponse(response);
     }
 
-    public void validateRefreshToken(UserAuthResponse response, GoldSDKDataProvider.ExpectedError expectedError) {
-        int expectedStatusCode = expectedError == null ? 200 : expectedError.getExpectedStatusCode();
+    public void validateRefreshToken(
+            UserAuthResponse response, GoldSDKDataProvider.ExpectedError expectedError) {
+        int expectedStatusCode =
+                expectedError == null ? 200 : expectedError.getExpectedStatusCode();
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-            softAssert.assertFalse(response.isSuccess(), "success should be false for error scenario");
-            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
-            String actualErrorMsg = response.getErrorMessage() != null ? response.getErrorMessage() : response.getError();
-            softAssert.assertTrue(actualErrorMsg != null && actualErrorMsg.contains(expectedError.getErrorMessage()), "Error message mismatch");
+            softAssert.assertFalse(
+                    response.isSuccess(), "success should be false for error scenario");
+            assertFieldsEquals(
+                    response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
+            String actualErrorMsg =
+                    response.getErrorMessage() != null
+                            ? response.getErrorMessage()
+                            : response.getError();
+            softAssert.assertTrue(
+                    actualErrorMsg != null
+                            && actualErrorMsg.contains(expectedError.getErrorMessage()),
+                    "Error message mismatch");
             return;
         }
         // SUCCESS FLOW

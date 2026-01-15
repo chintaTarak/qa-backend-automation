@@ -1,8 +1,7 @@
 package goldSDK;
 
 import base.BaseTest;
-import digigold.DigiGoldValidation;
-import io.restassured.response.Response;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
@@ -13,15 +12,9 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
-import java.util.Map;
-
 /**
- * Gold SDK – User Authentication & User APIs
- * Flow covered:
- * 1. Create User (S2S)
- * 2. Authenticate User (Login)
- * 3. Fetch User Details
- * 4. Refresh Access Token
+ * Gold SDK – User Authentication & User APIs Flow covered: 1. Create User (S2S) 2. Authenticate
+ * User (Login) 3. Fetch User Details 4. Refresh Access Token
  */
 @Slf4j
 public class GoldSDKTest extends BaseTest {
@@ -30,14 +23,22 @@ public class GoldSDKTest extends BaseTest {
     private GoldSDKValidation goldSDKValidation;
     public static String accessToken;
     public static String refreshToken;
+
     @BeforeMethod
     public void setup() {
         softAssert = new SoftAssert();
         goldSDKValidation = new GoldSDKValidation(softAssert);
     }
 
-    @Test(priority = 1, description = "Create user via S2S Create User API", dataProvider = "userCreationScenarios", dataProviderClass = GoldSDKDataProvider.class)
-    public void createUser(CreateUserRequest createUserRequest, String xApiKey, GoldSDKDataProvider.ExpectedError expectedError) {
+    @Test(
+            priority = 1,
+            description = "Create user via S2S Create User API",
+            dataProvider = "userCreationScenarios",
+            dataProviderClass = GoldSDKDataProvider.class)
+    public void createUser(
+            CreateUserRequest createUserRequest,
+            String xApiKey,
+            GoldSDKDataProvider.ExpectedError expectedError) {
         try {
             Map<String, String> headers = xApiKey != null ? Map.of("x-api-key", xApiKey) : Map.of();
             CreateUserResponse response = goldSDKMethods.createUser(headers, createUserRequest);
@@ -49,13 +50,20 @@ public class GoldSDKTest extends BaseTest {
             goldSDKValidation.assertAll();
         }
     }
+
     /**
-     * Authenticate user using Login API.
-     * On success, accessToken and refreshToken are captured
-     * for subsequent API calls.
+     * Authenticate user using Login API. On success, accessToken and refreshToken are captured for
+     * subsequent API calls.
      */
-    @Test(priority = 2, description = "Authenticate user and generate access & refresh tokens", dataProvider = "userAuthDetails", dataProviderClass = GoldSDKDataProvider.class)
-    public void authenticateUser(String xApiKey, Map<String, Object> queryParams, GoldSDKDataProvider.ExpectedError expectedError) {
+    @Test(
+            priority = 2,
+            description = "Authenticate user and generate access & refresh tokens",
+            dataProvider = "userAuthDetails",
+            dataProviderClass = GoldSDKDataProvider.class)
+    public void authenticateUser(
+            String xApiKey,
+            Map<String, Object> queryParams,
+            GoldSDKDataProvider.ExpectedError expectedError) {
         try {
             Map<String, String> headers = xApiKey != null ? Map.of("x-api-key", xApiKey) : Map.of();
             UserAuthResponse response = goldSDKMethods.userAuth(headers, queryParams);
@@ -72,18 +80,23 @@ public class GoldSDKTest extends BaseTest {
             goldSDKValidation.assertAll();
         }
     }
-    /**
-     * Fetch user details using access token.
-     * This test depends on successful authentication.
-     */
-    @Test(priority = 3, description = "Fetch user details using access token", dataProvider = "getUserScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "authenticateUser")
-    public void fetchUserDetails(Map<String, Object> queryParams, GoldSDKDataProvider.ExpectedError expectedError) {
+
+    /** Fetch user details using access token. This test depends on successful authentication. */
+    @Test(
+            priority = 3,
+            description = "Fetch user details using access token",
+            dataProvider = "getUserScenarios",
+            dataProviderClass = GoldSDKDataProvider.class,
+            dependsOnMethods = "authenticateUser")
+    public void fetchUserDetails(
+            Map<String, Object> queryParams, GoldSDKDataProvider.ExpectedError expectedError) {
         try {
             if (accessToken == null) {
                 softAssert.fail("Access token is null. Authentication might have failed.");
                 return;
             }
-            GetUserResponse response = goldSDKMethods.getUser(Map.of("Authorization", accessToken), queryParams);
+            GetUserResponse response =
+                    goldSDKMethods.getUser(Map.of("Authorization", accessToken), queryParams);
             goldSDKValidation.validateGetUsers(response, expectedError);
         } catch (Exception e) {
             log.error("Exception while fetching user details", e);
@@ -92,12 +105,16 @@ public class GoldSDKTest extends BaseTest {
             goldSDKValidation.assertAll();
         }
     }
-    /**
-     * Refresh access token using refresh token.
-     * Depends on successful authentication.
-     */
-    @Test(priority = 4, description = "Refresh access token using refresh token", dataProvider = "getRefreshToken", dataProviderClass = GoldSDKDataProvider.class)
-    public void refreshToken(RefreshTokenRequest refreshTokenRequest, GoldSDKDataProvider.ExpectedError expectedError) {
+
+    /** Refresh access token using refresh token. Depends on successful authentication. */
+    @Test(
+            priority = 4,
+            description = "Refresh access token using refresh token",
+            dataProvider = "getRefreshToken",
+            dataProviderClass = GoldSDKDataProvider.class)
+    public void refreshToken(
+            RefreshTokenRequest refreshTokenRequest,
+            GoldSDKDataProvider.ExpectedError expectedError) {
         try {
             UserAuthResponse response = goldSDKMethods.refreshToken(refreshTokenRequest);
             goldSDKValidation.validateRefreshToken(response, expectedError);

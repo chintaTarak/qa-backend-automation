@@ -1,9 +1,8 @@
 package org.jarApiAutomation.data.requestModel.digiGold;
 
+import java.math.BigDecimal;
 import lombok.Builder;
 import lombok.Data;
-
-import java.math.BigDecimal;
 
 @Data
 @Builder
@@ -12,12 +11,18 @@ public class SellVerifyRequest {
     private String userId;
     private BigDecimal volume;
     private BigDecimal amount;
-    private String  code;
+    private String code;
     private String merchantOrderId;
     private String calculationType;
 
-    public static SellVerifyRequest sellVerifyRequest(String rateId, String userId, BigDecimal volume,
-                                               BigDecimal amount, String code, String merchantOrderId, String calculationType) {
+    public static SellVerifyRequest sellVerifyRequest(
+            String rateId,
+            String userId,
+            BigDecimal volume,
+            BigDecimal amount,
+            String code,
+            String merchantOrderId,
+            String calculationType) {
         return SellVerifyRequest.builder()
                 .rateId(rateId)
                 .userId(userId)
@@ -29,5 +34,3 @@ public class SellVerifyRequest {
                 .build();
     }
 }
-
-

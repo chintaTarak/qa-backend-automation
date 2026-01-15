@@ -11,7 +11,8 @@ public class SellConfirmRequest {
     private String code;
     private Boolean isSync;
 
-    public static SellConfirmRequest sellConfirmRequest(String userId, String orderId, String code, Boolean isSync) {
+    public static SellConfirmRequest sellConfirmRequest(
+            String userId, String orderId, String code, Boolean isSync) {
         return SellConfirmRequest.builder()
                 .userId(userId)
                 .orderId(orderId)

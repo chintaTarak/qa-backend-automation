@@ -1,11 +1,10 @@
 package org.jarApiAutomation.data.responseModel.digiGold;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import java.math.BigDecimal;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
-
-import java.math.BigDecimal;
 
 @Data
 @EqualsAndHashCode(callSuper = false)
@@ -21,5 +20,4 @@ public class SellPriceResponse extends CommonResultModel {
         private BigDecimal assetPrice;
         private String rateStatus;
     }
-
 }

@@ -1,12 +1,11 @@
 package org.jarApiAutomation.utils;
 
 import java.text.MessageFormat;
+import java.util.HashMap;
+import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.ObjectId;
-import java.text.MessageFormat;
-import java.util.HashMap;
-import java.util.Map;
 
 @Slf4j
 public class CommonUtil {
@@ -32,14 +31,15 @@ public class CommonUtil {
         return doc != null ? doc.getString(key) : null;
     }
 
-    public static Map<String, String> buildQueryParams(String... keyValues) {
+    public static Map<String, String> buildQueryParams(Object... keyValues) {
         Map<String, String> params = new HashMap<>();
+
         for (int i = 0; i < keyValues.length; i += 2) {
-            String key = keyValues[i];
-            String value = keyValues[i + 1];
+            String key = String.valueOf(keyValues[i]);
+            Object value = keyValues[i + 1];
 
             if (value != null) {
-                params.put(key, value);
+                params.put(key, String.valueOf(value));
             }
         }
         return params.isEmpty() ? null : params;
