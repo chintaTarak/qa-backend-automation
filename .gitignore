@@ -41,12 +41,9 @@ hs_err_pid*
 ### ===== OS ===== ###
 .DS_Store
 
-### ===== Reports ===== ###
+### ===== Allure Reports ===== ###
 allure-results/
 allure-report/
+allure-reports/
 
-### ===== Maven (REMOVE if fully on Gradle) ===== ###
-target/
-.mvn/
-pom.xml
 

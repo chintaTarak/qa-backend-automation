@@ -6,6 +6,8 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoCollection;
 import com.mongodb.client.MongoDatabase;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
@@ -54,8 +56,6 @@ public class MongoDBUtils {
     }
 
     /**
-     * Fetch a single document based on filter and sort
-     *
      * @param dbName Database name
      * @param collection Collection name
      * @param filterKey Field to filter on

@@ -22,9 +22,17 @@ public class DBConstants {
     public static final String COUNTRY_CODE_DB = "+91";
     public static final String SORT_FIELD = "createdAt";
 
+    // Digigold DB Constants
     public static final String DIGI_GOLD_DB = "digigold";
     public static final String MATERIAL_RATE = "materialRate";
     public static final String id = "_id";
+
+    // Tenants DB Constants
     public static final String TENANTS_DB = "tenants";
     public static final String TENANT_USERS_COLLECTION = "tenantUsers";
+
+    // Autopay Constants
+    public static final String DB_CHANGEJAR = "changejar";
+    public static final String COLLECTION_SUBSCRIPTIONS = "subscriptions";
+    public static final String FIELD_UPDATED_AT = "updatedAt";
 }

@@ -13,6 +13,7 @@ import org.jarApiAutomation.data.responseModel.auth.FetchOtpResponse;
 import org.jarApiAutomation.data.responseModel.auth.RequestOtpResponse;
 import org.jarApiAutomation.data.responseModel.auth.VerifyOtpResponse;
 import org.jarApiAutomation.data.responseModel.userProfile.UserDetailsResponse;
+import org.testng.ITestContext;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
@@ -61,7 +62,6 @@ public class AuthServiceTest extends BaseTest {
 
     @Test(priority = 2, description = "Fetching OTP From Database")
     public void fetchOtp() {
-        // Verify OTP and get access token
         try {
             FetchOtpResponse fetchOtpResponse =
                     authMethods.fetchOtp(
@@ -80,8 +80,7 @@ public class AuthServiceTest extends BaseTest {
     }
 
     @Test(priority = 3, description = "Validating the OTP to Get Access Token")
-    public void validateOtp() {
-        // Extract Access Token
+    public void validateOtp(ITestContext context) {
         try {
             VerifyOtpRequest verifyOtpReq =
                     VerifyOtpRequest.verifyOtpPayload(COUNTRY_CODE, TEST_PHONE_NUMBER, otp, reqId);
@@ -89,6 +88,9 @@ public class AuthServiceTest extends BaseTest {
             if (verifyOtpResultModel.isSuccess() && verifyOtpResultModel.getData() != null) {
                 accessToken = verifyOtpResultModel.getData().getAccessToken();
                 log.info("AccessToken: {}", accessToken);
+
+                context.getSuite()
+                        .setAttribute("AUTH_TOKEN", accessToken); // Storing token in TestNG Context
             }
             authValidation.assertVerifyOtp(verifyOtpResultModel);
         } catch (Exception e) {
@@ -145,6 +147,7 @@ public class AuthServiceTest extends BaseTest {
                     userDetailsResponse_old,
                     USER_LOGGED_OUT.getErrorCode(),
                     USER_LOGGED_OUT.getErrorMessage());
+
             // Verify Response using the New AccessToken
             UserDetailsResponse userDetailsResponse_new =
                     userMethods.userDetails(Map.of("Authorization", "Bearer " + newToken));
