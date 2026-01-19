@@ -72,6 +72,7 @@ public class MongoDBUtils {
             } else {
                 query = new Document(filterKey, value);
             }
+
             Document sort = new Document(sortField, -1);
 
             Document document =
@@ -89,6 +90,42 @@ public class MongoDBUtils {
         } catch (Exception e) {
             log.info("Error while fetching data: {}", e.getMessage());
             e.printStackTrace();
+            return null;
+        }
+    }
+
+    /** Close the MongoClient */
+    public Document fetchDataMultiFilter(
+            String dbName, String collection, Map<String, Object> filters, String sortField) {
+
+        try {
+            MongoCollection<Document> dbCollection = getCollection(dbName, collection);
+
+            Document query = new Document();
+
+            for (Map.Entry<String, Object> entry : filters.entrySet()) {
+                if ("_id".equals(entry.getKey())) {
+                    query.append("_id", new ObjectId(entry.getValue().toString()));
+                } else {
+                    query.append(entry.getKey(), entry.getValue());
+                }
+            }
+
+            Document sort = new Document(sortField, -1);
+
+            Document document =
+                    dbCollection.find(query).sort(sort).first(); // FULL document is returned
+
+            if (document != null) {
+                log.info("Fetched Document: {}", document.toJson());
+            } else {
+                log.info("No Document found for Query: {}", query.toJson());
+            }
+
+            return document;
+
+        } catch (Exception e) {
+            log.error("Error while fetching data", e);
             return null;
         }
     }

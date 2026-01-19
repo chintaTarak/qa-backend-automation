@@ -31,6 +31,17 @@ public class CommonUtil {
         return doc != null ? doc.getString(key) : null;
     }
 
+    public static double getDoubleValueFromDocument(Document doc, String key) {
+        if (doc == null || key == null) return 0.0;
+
+        Object value = doc.get(key);
+        if (value instanceof Number) {
+            return ((Number) value).doubleValue();
+        }
+
+        return value != null ? Double.parseDouble(value.toString()) : 0.0;
+    }
+
     public static Map<String, String> buildQueryParams(Object... keyValues) {
         Map<String, String> params = new HashMap<>();
 

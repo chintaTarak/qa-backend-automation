@@ -20,7 +20,7 @@ import org.testng.asserts.SoftAssert;
 
 @Slf4j
 public class AuthServiceTest extends BaseTest {
-    SoftAssert softAssert = new SoftAssert();
+    protected SoftAssert softAssert = new SoftAssert();
     private final AuthMethods authMethods = new AuthMethods();
     private final UserMethods userMethods = new UserMethods();
     private AuthValidation authValidation;
@@ -35,7 +35,9 @@ public class AuthServiceTest extends BaseTest {
 
     private String reqId;
     private String otp;
-    public String accessToken;
+    public static String accessToken;
+
+    public static String userId;
 
     // Request OTP with Valid PhoneNumber and get reqId
     @Test(
@@ -87,6 +89,7 @@ public class AuthServiceTest extends BaseTest {
             VerifyOtpResponse verifyOtpResultModel = authMethods.verifyOtp(verifyOtpReq);
             if (verifyOtpResultModel.isSuccess() && verifyOtpResultModel.getData() != null) {
                 accessToken = verifyOtpResultModel.getData().getAccessToken();
+                userId = verifyOtpResultModel.getData().getUser().getUserId();
                 log.info("AccessToken: {}", accessToken);
 
                 context.getSuite()
@@ -96,7 +99,6 @@ public class AuthServiceTest extends BaseTest {
         } catch (Exception e) {
             log.error("Exception during Validate OTP: {}", e.getMessage());
             softAssert.fail("Verify OTP test failed due to exception: " + e.getMessage());
-            softAssert.assertAll();
         }
     }
 
