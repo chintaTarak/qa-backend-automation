@@ -79,18 +79,28 @@ dependencies {
 }
 
 test {
-    useTestNG()
+    useTestNG {
+        suites(
+                "src/test/resources/test/testng.xml",
+                "src/test/resources/test/digigold.xml"
+        )
+    }
 
-    // Same as Maven Surefire argLine
+    // Disable parallel JVMs (avoid multiple DB init)
+    maxParallelForks = 1
+    forkEvery = 0
+
+    // AspectJ (same as Maven argLine)
     jvmArgs "-javaagent:${configurations.testRuntimeClasspath.find { it.name.contains('aspectjweaver') }}"
 
+    // Logging
     systemProperty "logback.configurationFile", "src/test/resources/logback-test.xml"
 
     testLogging {
         events "passed", "failed", "skipped"
-
         showStandardStreams = true
     }
 }
+
 
 
