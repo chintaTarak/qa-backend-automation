@@ -23,4 +23,5 @@ public class DBConstants {
     public static final String id="_id";
     public static final String TENANTS_DB = "tenants";
     public static final String TENANT_USERS_COLLECTION = "tenantUsers";
+    public static final String TENANT_KYC_COLLECTION = "kycDocuments";
 }

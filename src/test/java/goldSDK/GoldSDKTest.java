@@ -5,15 +5,21 @@ import digigold.DigiGoldValidation;
 import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.InitiateKycRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
-import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
-import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
-import org.jarApiAutomation.data.responseModel.goldSDK.UserAuthResponse;
+import org.jarApiAutomation.data.responseModel.goldSDK.*;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
+import java.io.File;
+import java.io.InputStream;
+import java.net.URISyntaxException;
+import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.StandardCopyOption;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Gold SDK – User Authentication & User APIs
@@ -30,6 +36,9 @@ public class GoldSDKTest extends BaseTest {
     private GoldSDKValidation goldSDKValidation;
     public static String accessToken;
     public static String refreshToken;
+    private String presignedUrl;
+    private String documentImageId;
+    static String userId;
     @BeforeMethod
     public void setup() {
         softAssert = new SoftAssert();
@@ -54,10 +63,11 @@ public class GoldSDKTest extends BaseTest {
      * On success, accessToken and refreshToken are captured
      * for subsequent API calls.
      */
-    @Test(priority = 2, description = "Authenticate user and generate access & refresh tokens", dataProvider = "userAuthDetails", dataProviderClass = GoldSDKDataProvider.class)
+    @Test(priority = 2, description = "Authenticate user and generate access & refresh tokens", dataProvider = "userAuthDetails", dataProviderClass = GoldSDKDataProvider.class,  dependsOnMethods = "createUser")
     public void authenticateUser(String xApiKey, Map<String, Object> queryParams, GoldSDKDataProvider.ExpectedError expectedError) {
         try {
             Map<String, String> headers = xApiKey != null ? Map.of("x-api-key", xApiKey) : Map.of();
+            queryParams = Map.of("userId", userId);
             UserAuthResponse response = goldSDKMethods.userAuth(headers, queryParams);
             // Capture tokens only on SUCCESS
             if (expectedError == null && response.getData() != null) {
@@ -77,13 +87,13 @@ public class GoldSDKTest extends BaseTest {
      * This test depends on successful authentication.
      */
     @Test(priority = 3, description = "Fetch user details using access token", dataProvider = "getUserScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "authenticateUser")
-    public void fetchUserDetails(Map<String, Object> queryParams, GoldSDKDataProvider.ExpectedError expectedError) {
+    public void fetchUserDetails(GoldSDKDataProvider.ExpectedError expectedError) {
         try {
             if (accessToken == null) {
                 softAssert.fail("Access token is null. Authentication might have failed.");
                 return;
             }
-            GetUserResponse response = goldSDKMethods.getUser(Map.of("Authorization", accessToken), queryParams);
+            GetUserResponse response = goldSDKMethods.getUser(Map.of("Authorization", accessToken));
             goldSDKValidation.validateGetUsers(response, expectedError);
         } catch (Exception e) {
             log.error("Exception while fetching user details", e);
@@ -104,6 +114,59 @@ public class GoldSDKTest extends BaseTest {
         } catch (Exception e) {
             log.error("Exception while refreshing access token", e);
             softAssert.fail("Refresh Token test failed: " + e.getMessage());
+        } finally {
+            goldSDKValidation.assertAll();
+        }
+    }
+
+    @Test(priority = 6, description = "Upload document and get presigned URL")
+    public void uploadDocument() {
+        Map<String, String> headers = Map.of("Authorization", accessToken);
+        UploadResponse response = goldSDKMethods.upload(headers);
+        goldSDKValidation.validateUpload(response);
+        presignedUrl = response.getData().getPreSignedUrlPath();
+        documentImageId = response.getData().getDocumentImageId();
+    }
+
+    @Test(priority = 7, description = "Upload file using presigned URL", dependsOnMethods = "uploadDocument")
+    public void uploadFile() {
+        File imageFile = new File("src/test/java/testData/goldSDK/pancard.jpeg");
+        int statusCode = goldSDKMethods.uploadFile(presignedUrl, imageFile, "image/jpeg");
+        goldSDKValidation.validateUploadFile(statusCode);
+    }
+
+    @Test(priority = 8, description = "Initiate KYC using PAN document", dataProvider = "initiateKycScenarios", dataProviderClass = GoldSDKDataProvider.class)
+    public void initiateKyc(InitiateKycRequest request, GoldSDKDataProvider.ExpectedError expectedError) {
+        Map<String, String> headers = Map.of("Authorization", accessToken);
+        try {
+            if (accessToken == null) {
+                softAssert.fail("Access token is null. Authentication might have failed.");
+                return;
+            }
+            // Inject documentImageId obtained from Upload API
+            request.getPanVerificationDoc().setDocFrontImageId(documentImageId);
+            InitiateKycResponse response = goldSDKMethods.initiateKyc(headers, request);
+            goldSDKValidation.validateInitiateKyc(response, request, documentImageId, expectedError);
+        } catch (Exception e) {
+            log.error("Exception while initiating KYC", e);
+            softAssert.fail("Initiate KYC test failed: " + e.getMessage());
+        } finally {
+            goldSDKValidation.assertAll();
+        }
+    }
+    @Test(priority = 9, description = "Fetch KYC status", dataProvider = "getKycStatusScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "initiateKyc")
+    public void getKycStatus(GoldSDKDataProvider.ExpectedError expectedError) {
+        Map<String, String> headers = Map.of("Authorization", accessToken);
+        try {
+            if (accessToken == null) {
+                softAssert.fail("Access token is null");
+                return;
+            }
+            KycStatusResponse response = goldSDKMethods.getKycStatus(headers);
+            goldSDKValidation.validateKycStatus(response, expectedError);
+        } catch (Exception e) {
+            log.error("Exception while fetching KYC status", e);
+            softAssert.fail("KYC Status test failed: " + e.getMessage());
         } finally {
             goldSDKValidation.assertAll();
         }
