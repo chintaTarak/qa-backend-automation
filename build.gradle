@@ -82,7 +82,8 @@ test {
     useTestNG {
         suites(
                 "src/test/resources/test/testng.xml",
-                "src/test/resources/test/digigold.xml"
+                "src/test/resources/test/digigold.xml",
+                "src/test/resources/test/digiGoldSDK.xml"
         )
     }
 

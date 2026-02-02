@@ -1,19 +1,22 @@
 package goldSDK;
 
-import static org.jarApiAutomation.utils.CommonUtil.getApiEndPoint;
-
 import io.restassured.response.Response;
-import java.util.Map;
 import org.jarApiAutomation.configuration.BaseUri;
 import org.jarApiAutomation.data.common.RestRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.AutoPayInitiateRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
+import org.jarApiAutomation.data.responseModel.goldSDK.AutoPayInitiateResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.UserAuthResponse;
 import org.jarApiAutomation.endpoints.GoldSDKEndPoints;
 import org.jarApiAutomation.utils.ApiRequests;
 import org.jarApiAutomation.utils.CommonSerializationUtil;
+
+import java.util.Map;
+
+import static org.jarApiAutomation.utils.CommonUtil.getApiEndPoint;
 
 public class GoldSDKMethods {
 
@@ -94,6 +97,23 @@ public class GoldSDKMethods {
         // IMPORTANT
         deserializedResponse.setStatusCode(response.getStatusCode());
 
+        return deserializedResponse;
+    }
+
+
+    public AutoPayInitiateResponse initiateAutoPay(AutoPayInitiateRequest autoPayInitiateRequest,Map<String,String> headers) {
+        RestRequest req =
+                RestRequest.builder()
+                        .url(
+                                getApiEndPoint(
+                                        BaseUri.GOLD_BASE_AUTH_URI,
+                                        BaseUri.V1,
+                                        GoldSDKEndPoints.INITIATE_AUTOPAY))
+                        .body(autoPayInitiateRequest).headers(headers)
+                        .build();
+        Response response = apiRequests.post(req);
+        AutoPayInitiateResponse deserializedResponse = CommonSerializationUtil.readObject(response.getBody().asString(), AutoPayInitiateResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
         return deserializedResponse;
     }
 }

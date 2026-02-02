@@ -31,6 +31,10 @@ public class DBConstants {
     public static final String TENANTS_DB = "tenants";
     public static final String TENANT_USERS_COLLECTION = "tenantUsers";
 
+    // DIgigold SDK DB Constants
+    public static final String DIGIGOLD_SDK_DB = "digigold-sdk";
+    public static final String AUTOPAYS_COLLECTION = "autopays";
+
     // Autopay Constants
     public static final String DB_CHANGEJAR = "changejar";
     public static final String COLLECTION_SUBSCRIPTIONS = "subscriptions";

@@ -1,16 +1,18 @@
 package goldSDK;
 
 import base.BaseTest;
-import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
+import org.jarApiAutomation.data.requestModel.goldSDK.AutoPayInitiateRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
+import org.jarApiAutomation.data.responseModel.goldSDK.AutoPayInitiateResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.UserAuthResponse;
-import org.testng.annotations.BeforeMethod;
-import org.testng.annotations.Test;
+import org.testng.annotations.*;
 import org.testng.asserts.SoftAssert;
+
+import java.util.Map;
 
 /**
  * Gold SDK – User Authentication & User APIs Flow covered: 1. Create User (S2S) 2. Authenticate
@@ -23,11 +25,20 @@ public class GoldSDKTest extends BaseTest {
     private GoldSDKValidation goldSDKValidation;
     public static String accessToken;
     public static String refreshToken;
+    public static String userId;
+    public static String frequency;
+    public static String userRefId;
 
     @BeforeMethod
     public void setup() {
         softAssert = new SoftAssert();
         goldSDKValidation = new GoldSDKValidation(softAssert);
+    }
+
+    @Parameters("savingsType")
+    @BeforeClass
+    public void beforeClassSetup(@Optional("DAILY") String savingsType) {
+        frequency = savingsType;
     }
 
     @Test(
@@ -42,6 +53,11 @@ public class GoldSDKTest extends BaseTest {
         try {
             Map<String, String> headers = xApiKey != null ? Map.of("x-api-key", xApiKey) : Map.of();
             CreateUserResponse response = goldSDKMethods.createUser(headers, createUserRequest);
+            // Capture userId only on SUCCESS
+            if (expectedError == null && response.getData() != null) {
+                userRefId = createUserRequest.getUserRefId();
+                userId = response.getData().getId();
+            }
             goldSDKValidation.validateUserCreation(createUserRequest, response, expectedError);
         } catch (Exception e) {
             log.error("Exception while creating user", e);
@@ -81,7 +97,9 @@ public class GoldSDKTest extends BaseTest {
         }
     }
 
-    /** Fetch user details using access token. This test depends on successful authentication. */
+    /**
+     * Fetch user details using access token. This test depends on successful authentication.
+     */
     @Test(
             priority = 3,
             description = "Fetch user details using access token",
@@ -106,7 +124,9 @@ public class GoldSDKTest extends BaseTest {
         }
     }
 
-    /** Refresh access token using refresh token. Depends on successful authentication. */
+    /**
+     * Refresh access token using refresh token. Depends on successful authentication.
+     */
     @Test(
             priority = 4,
             description = "Refresh access token using refresh token",
@@ -121,6 +141,26 @@ public class GoldSDKTest extends BaseTest {
         } catch (Exception e) {
             log.error("Exception while refreshing access token", e);
             softAssert.fail("Refresh Token test failed: " + e.getMessage());
+        } finally {
+            goldSDKValidation.assertAll();
+        }
+    }
+
+
+    @Test(
+            description = "Initiate Auto Pay and validate response",
+            dataProvider = "initiateAutoPay",
+            dataProviderClass = GoldSDKDataProvider.class,
+            dependsOnMethods = "authenticateUser"
+    )
+    public void initiateAutoPay(
+            AutoPayInitiateRequest autoPayInitiateRequest, Map<String, String> headers, GoldSDKDataProvider.ExpectedError expectedError) {
+        try {
+            AutoPayInitiateResponse autoPayInitiateResponse = goldSDKMethods.initiateAutoPay(autoPayInitiateRequest, headers);
+            goldSDKValidation.validateAutoPayInitiateResponse(autoPayInitiateResponse, expectedError);
+        } catch (Exception e) {
+            log.error("Exception while refreshing access token", e);
+            softAssert.fail(" initiateAutoPay Test failed: " + e.getMessage());
         } finally {
             goldSDKValidation.assertAll();
         }

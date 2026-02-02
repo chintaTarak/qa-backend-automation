@@ -1,13 +1,15 @@
 package goldSDK;
 
-import static goldSDK.GoldSDKDataProvider.ExpectedError.*;
+import static goldSDK.GoldSDKTest.userId;
 import static org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest.createUser;
 import static org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest.createToken;
+import static org.jarApiAutomation.data.requestModel.goldSDK.AutoPayInitiateRequest.initiateAutoPayRequest;
 import static testData.goldSDK.GoldSDKTestData.*;
 
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+import org.jarApiAutomation.utils.CommonUtil;
 import org.testng.annotations.DataProvider;
 
 public class GoldSDKDataProvider {
@@ -17,7 +19,12 @@ public class GoldSDKDataProvider {
         ACCESS_DENIED("20007", "Access denied", 403),
         UNAUTHORIZE("401", "Authentication failed", 401),
         BAD_REQUEST("50003", "User id or phone number is required", 400),
-        USER_AUTH_BAD_REQUEST("50001", "Required query parameter userId is not present", 400);
+        EMPTY_REF_ID_BAD_REQUEST("50003", "Field userRefId should be present.", 400),
+        USER_AUTH_BAD_REQUEST("50001", "Required query parameter userId is not present", 400),
+        EMPTY_REFRSHTOKEN_BAD_REQUEST("50003", "Field refreshToken should be present.", 400),
+        EMPTY_ACCESSTOKEN_BAD_REQUEST("50003", "Field accessToken should be present", 400),
+        EMPTY_TOKEN_BAD_REQUEST("50003", "Field accessToken should be present., Field refreshToken should be present.", 400);
+
         private final String errorCode;
         private final String errorMessage;
         private final int expectedStatusCode;
@@ -25,11 +32,12 @@ public class GoldSDKDataProvider {
 
     @DataProvider(name = "userCreationScenarios")
     public Object[][] userDetails() {
+        String userRefId = CommonUtil.generateMongoId();
         return new Object[][] {
             // Success case
             {
                 createUser(
-                        USER_REF_ID,
+                        userRefId,
                         USER_FIRST_NAME,
                         USER_LAST_NAME,
                         USER_PHONE_NUMBER,
@@ -40,7 +48,7 @@ public class GoldSDKDataProvider {
             // Invalid x-api-key
             {
                 createUser(
-                        USER_REF_ID,
+                        userRefId,
                         USER_FIRST_NAME,
                         USER_LAST_NAME,
                         USER_PHONE_NUMBER,
@@ -51,7 +59,7 @@ public class GoldSDKDataProvider {
             // Empty x-api-key
             {
                 createUser(
-                        USER_REF_ID,
+                        userRefId,
                         USER_FIRST_NAME,
                         USER_LAST_NAME,
                         USER_PHONE_NUMBER,
@@ -68,7 +76,7 @@ public class GoldSDKDataProvider {
                         USER_PHONE_NUMBER,
                         USER_COUNTRY_CODE),
                 X_API_USER,
-                ExpectedError.BAD_REQUEST
+                ExpectedError.EMPTY_REF_ID_BAD_REQUEST
             },
         };
     }
@@ -77,9 +85,9 @@ public class GoldSDKDataProvider {
     public Object[][] userAuthDetails() {
         return new Object[][] {
             // Success case
-            {X_API_USER, Map.of("userId", USER_ID), null},
+            {X_API_USER, Map.of("userId", userId), null},
             // Empty x-api-key
-            {EMPTY_USER_REF_ID, Map.of("userId", USER_ID), ExpectedError.UNAUTHORIZE},
+            {EMPTY_USER_REF_ID, Map.of("userId", userId), ExpectedError.UNAUTHORIZE},
             // Invalid x-api-key
             {INVALID_X_API_USER, Map.of("userId", INVALID_USER_ID), ExpectedError.ACCESS_DENIED},
             // Missing userId query parameter
@@ -91,7 +99,7 @@ public class GoldSDKDataProvider {
     public Object[][] getUserDetails() {
         return new Object[][] {
             // Fetch user details with valid userId
-            {Map.of("userId", USER_ID), null},
+            {Map.of("userId", userId), null},
             // Fetch user details with empty userId
             {Map.of("userId", EMPTY_USER_REF_ID), null},
             // Fetch user details with invalid userId
@@ -105,11 +113,19 @@ public class GoldSDKDataProvider {
             // Success case
             {createToken(GoldSDKTest.refreshToken, GoldSDKTest.accessToken), null},
             // Empty refresh token
-            {createToken(EMPTY_REFRESH_TOKEN, GoldSDKTest.accessToken), ExpectedError.BAD_REQUEST},
+            {createToken(EMPTY_REFRESH_TOKEN, GoldSDKTest.accessToken), ExpectedError.EMPTY_REFRSHTOKEN_BAD_REQUEST},
             // Empty access token
-            {createToken(GoldSDKTest.refreshToken, EMPTY_ACCESS_TOKEN), ExpectedError.BAD_REQUEST},
+            {createToken(GoldSDKTest.refreshToken, EMPTY_ACCESS_TOKEN), ExpectedError.EMPTY_ACCESSTOKEN_BAD_REQUEST},
             // Both refresh token and access token empty
-            {createToken(EMPTY_REFRESH_TOKEN, EMPTY_ACCESS_TOKEN), ExpectedError.BAD_REQUEST},
+            {createToken(EMPTY_REFRESH_TOKEN, EMPTY_ACCESS_TOKEN), ExpectedError.EMPTY_TOKEN_BAD_REQUEST},
+        };
+    }
+
+    @DataProvider(name = "initiateAutoPay")
+    public Object[][] initiateAutoPay() {
+        return new Object[][] {
+                // valid case
+                {initiateAutoPayRequest(GoldSDKTest.frequency,MANDATE_AMOUNT,MAX_MANDATE_AMOUNT,PACKAGE_NAME),Map.of("Authorization","Bearer "+ GoldSDKTest.accessToken),null},
         };
     }
 }

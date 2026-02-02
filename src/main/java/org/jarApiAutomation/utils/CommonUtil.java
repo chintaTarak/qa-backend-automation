@@ -28,7 +28,8 @@ public class CommonUtil {
     }
 
     public static String getValueFromDocument(Document doc, String key) {
-        return doc != null ? doc.getString(key) : null;
+        Object value = doc != null ? doc.get(key) : null;
+        return value != null ? value.toString() : null;
     }
 
     public static double getDoubleValueFromDocument(Document doc, String key) {

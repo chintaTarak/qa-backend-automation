@@ -129,6 +129,7 @@ public class DataBaseFactory {
                 initDigiPostgresDB(DIGIGOLD_PG_URL, DIGIGOLD_PG_USER, DIGIGOLD_PG_PWD);
                 initDigiSDKPostgresDB(DIGIGOLDSDK_PG_URL, DIGIGOLD_PG_USER, DIGIGOLD_PG_PWD);
                 initTenantMongoDB(TENANTS_MONGO_DB_URL);
+                initChangeJarMongoDB(CHANGEJAR_MONGO_DB_URL);
                 break;
             case "changejar":
                 initChangeJarMongoDB(CHANGEJAR_MONGO_DB_URL);
