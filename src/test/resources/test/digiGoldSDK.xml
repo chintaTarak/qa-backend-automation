@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE suite SYSTEM "https://testng.org/testng-1.0.dtd">
+
+
+<suite name="Digi Gold API Test Suite" verbose="1" parallel="none">
+    <listeners>
+        <listener class-name="org.jarApiAutomation.listeners.Listeners"/>
+        <listener class-name="org.jarApiAutomation.listeners.AnnotationTransformer"/>
+    </listeners>
+    <parameter name="dbServer" value="digigold"/>
+
+    <test name="digi Gold API Tests">
+        <parameter name="savingsType" value="DAILY"/>
+        <classes>
+            <class name="goldSDK.GoldSDKTest"/>
+        </classes>
+    </test>
+</suite>

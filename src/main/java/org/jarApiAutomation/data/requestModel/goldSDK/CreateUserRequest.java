@@ -1,6 +1,5 @@
 package org.jarApiAutomation.data.requestModel.goldSDK;
 
-
 import lombok.Builder;
 import lombok.Data;
 
@@ -19,8 +18,7 @@ public class CreateUserRequest {
             String firstName,
             String lastName,
             String phoneNumber,
-            String countryCode
-    ) {
+            String countryCode) {
         return CreateUserRequest.builder()
                 .userRefId(userRefId)
                 .firstName(firstName)

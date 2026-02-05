@@ -7,6 +7,7 @@ import org.jarApiAutomation.data.responseModel.CommonResultModel;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
+@EqualsAndHashCode(callSuper = true)
 public class CreateUserResponse extends CommonResultModel {
 
     private boolean success;

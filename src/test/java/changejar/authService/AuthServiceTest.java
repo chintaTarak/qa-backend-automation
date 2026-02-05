@@ -13,13 +13,14 @@ import org.jarApiAutomation.data.responseModel.auth.FetchOtpResponse;
 import org.jarApiAutomation.data.responseModel.auth.RequestOtpResponse;
 import org.jarApiAutomation.data.responseModel.auth.VerifyOtpResponse;
 import org.jarApiAutomation.data.responseModel.userProfile.UserDetailsResponse;
+import org.testng.ITestContext;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 import org.testng.asserts.SoftAssert;
 
 @Slf4j
 public class AuthServiceTest extends BaseTest {
-    SoftAssert softAssert = new SoftAssert();
+    protected SoftAssert softAssert = new SoftAssert();
     private final AuthMethods authMethods = new AuthMethods();
     private final UserMethods userMethods = new UserMethods();
     private AuthValidation authValidation;
@@ -34,7 +35,9 @@ public class AuthServiceTest extends BaseTest {
 
     private String reqId;
     private String otp;
-    public String accessToken;
+    public static String accessToken;
+
+    public static String userId;
 
     // Request OTP with Valid PhoneNumber and get reqId
     @Test(
@@ -61,7 +64,6 @@ public class AuthServiceTest extends BaseTest {
 
     @Test(priority = 2, description = "Fetching OTP From Database")
     public void fetchOtp() {
-        // Verify OTP and get access token
         try {
             FetchOtpResponse fetchOtpResponse =
                     authMethods.fetchOtp(
@@ -80,21 +82,23 @@ public class AuthServiceTest extends BaseTest {
     }
 
     @Test(priority = 3, description = "Validating the OTP to Get Access Token")
-    public void validateOtp() {
-        // Extract Access Token
+    public void validateOtp(ITestContext context) {
         try {
             VerifyOtpRequest verifyOtpReq =
                     VerifyOtpRequest.verifyOtpPayload(COUNTRY_CODE, TEST_PHONE_NUMBER, otp, reqId);
             VerifyOtpResponse verifyOtpResultModel = authMethods.verifyOtp(verifyOtpReq);
             if (verifyOtpResultModel.isSuccess() && verifyOtpResultModel.getData() != null) {
                 accessToken = verifyOtpResultModel.getData().getAccessToken();
+                userId = verifyOtpResultModel.getData().getUser().getUserId();
                 log.info("AccessToken: {}", accessToken);
+
+                context.getSuite()
+                        .setAttribute("AUTH_TOKEN", accessToken); // Storing token in TestNG Context
             }
             authValidation.assertVerifyOtp(verifyOtpResultModel);
         } catch (Exception e) {
             log.error("Exception during Validate OTP: {}", e.getMessage());
             softAssert.fail("Verify OTP test failed due to exception: " + e.getMessage());
-            softAssert.assertAll();
         }
     }
 
@@ -145,6 +149,7 @@ public class AuthServiceTest extends BaseTest {
                     userDetailsResponse_old,
                     USER_LOGGED_OUT.getErrorCode(),
                     USER_LOGGED_OUT.getErrorMessage());
+
             // Verify Response using the New AccessToken
             UserDetailsResponse userDetailsResponse_new =
                     userMethods.userDetails(Map.of("Authorization", "Bearer " + newToken));

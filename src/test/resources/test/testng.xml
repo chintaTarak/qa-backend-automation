@@ -8,10 +8,23 @@
         <listener class-name="org.jarApiAutomation.listeners.AnnotationTransformer"/>
     </listeners>
     <parameter name="dbServer" value="changejar"/>
-
     <test name="Auth API Tests">
         <classes>
-            <class name="changejar.authService.AuthServiceTest"/>
+<!--            <class name="changejar.authService.AuthServiceTest"/>-->
+            <class name="activation.manualBuyGold.BuyGoldTest"></class>
+        </classes>
+    </test>
+
+    <!-- ================= Autopay Tests ================= -->
+    <test name="Autopay API Tests">
+        <groups>
+            <define name="initiate-autopay"/>
+            <define name="status-autopay"/>
+        </groups>
+
+        <classes>
+            <!-- MUST run first -->
+            <class name="changejar.autopayService.InitiateAutopayTest"/>
         </classes>
     </test>
 </suite>
