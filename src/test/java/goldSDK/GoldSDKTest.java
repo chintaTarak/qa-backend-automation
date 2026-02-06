@@ -223,7 +223,6 @@ public class GoldSDKTest extends BaseTest {
             if (request instanceof InitiatePanKycRequest panReq) {
                 docType = panReq.getPanVerificationDoc().getKycDocType();
                 imageId = documentImageIdMap.get(docType);
-                System.out.println("PAN ImageId: " + imageId);
                 panReq.getPanVerificationDoc().setDocFrontImageId(imageId);
                 response = goldSDKMethods.initiateKyc(headers, panReq);
                 goldSDKValidation.validateInitiateKyc(response, docType, expectedError);
@@ -232,7 +231,6 @@ public class GoldSDKTest extends BaseTest {
             else if (request instanceof InitiateAadhaarKycRequest aadhaarReq) {
                 docType = aadhaarReq.getKycVerificationDoc().getKycDocType();
                 imageId = documentImageIdMap.get(docType);
-                System.out.println("AADHAAR ImageId: " + imageId);
                 aadhaarReq.getKycVerificationDoc().setDocFrontImageId(imageId);
                 response = goldSDKMethods.initiateKyc(headers, aadhaarReq);
                 goldSDKValidation.validateInitiateKyc(response, docType, expectedError);
