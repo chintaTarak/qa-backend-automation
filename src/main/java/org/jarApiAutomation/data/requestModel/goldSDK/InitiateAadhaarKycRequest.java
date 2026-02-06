@@ -7,21 +7,19 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class InitiateKycRequest {
-
+public class InitiateAadhaarKycRequest implements BaseKycRequest {
     private String phoneNumber;
     private String countryCode;
-    private PanVerificationDoc panVerificationDoc;
+    private kycVerificationDoc kycVerificationDoc;
 
     @Data
     @AllArgsConstructor
     @NoArgsConstructor
-    public static class PanVerificationDoc {
+    public static class kycVerificationDoc {
         private String kycDocType;
         private String docNumber;
-        private String docFrontImageId;   // from upload API
+        private String docFrontImageId;
         private String name;
         private String dob;
     }
 }
-

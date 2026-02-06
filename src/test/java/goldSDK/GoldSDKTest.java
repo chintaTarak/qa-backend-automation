@@ -1,19 +1,17 @@
 package goldSDK;
 
 import base.BaseTest;
-import digigold.DigiGoldValidation;
-import io.restassured.response.Response;
 import lombok.extern.slf4j.Slf4j;
-import org.jarApiAutomation.data.requestModel.goldSDK.AutoPayInitiateRequest;
-import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
-import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
-import org.jarApiAutomation.data.responseModel.goldSDK.AutoPayInitiateResponse;
-import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
-import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
-import org.jarApiAutomation.data.responseModel.goldSDK.UserAuthResponse;
+import org.jarApiAutomation.data.requestModel.goldSDK.*;
+import org.jarApiAutomation.data.requestModel.goldSDK.BaseKycRequest;
+import org.jarApiAutomation.data.responseModel.goldSDK.*;
 import org.testng.annotations.*;
 import org.testng.asserts.SoftAssert;
 
+import java.io.File;
+import java.net.URL;
+import java.nio.file.Paths;
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -30,10 +28,10 @@ public class GoldSDKTest extends BaseTest {
     public static String userId;
     public static String frequency;
     public static String userRefId;
+    private static Map<String, String> presignedUrlMap = new HashMap<>();
+    private static Map<String, String> documentImageIdMap = new HashMap<>();
 
-    private String presignedUrl;
-    private String documentImageId;
-    static String userId;
+
     @BeforeMethod
     public void setup() {
         softAssert = new SoftAssert();
@@ -151,7 +149,6 @@ public class GoldSDKTest extends BaseTest {
         }
     }
 
-
     @Test(
             description = "Initiate Auto Pay and validate response",
             dataProvider = "initiateAutoPay",
@@ -170,52 +167,100 @@ public class GoldSDKTest extends BaseTest {
             goldSDKValidation.assertAll();
         }
     }
-
-    @Test(priority = 6, description = "Upload document and get presigned URL")
-    public void uploadDocument() {
+    /**
+     * Upload Document API.
+     * Generates presigned URL and documentImageId for given docType.
+     * Values are stored in maps for PAN and AADHAAR flows.
+     * Used later for file upload and KYC initiation.
+     */
+    @Test(priority = 6, description = "Upload document and get presigned URL", dataProvider = "uploadDocTypes", dataProviderClass = GoldSDKDataProvider.class)
+    public void uploadDocument(String docType) {
         Map<String, String> headers = Map.of("Authorization", accessToken);
         UploadResponse response = goldSDKMethods.upload(headers);
         goldSDKValidation.validateUpload(response);
-        presignedUrl = response.getData().getPreSignedUrlPath();
-        documentImageId = response.getData().getDocumentImageId();
+        // store separately
+        presignedUrlMap.put(docType, response.getData().getPreSignedUrlPath());
+        documentImageIdMap.put(docType, response.getData().getDocumentImageId());
     }
 
-    @Test(priority = 7, description = "Upload file using presigned URL", dependsOnMethods = "uploadDocument")
-    public void uploadFile() {
-        File imageFile = new File("src/test/java/testData/goldSDK/pancard.jpeg");
-        int statusCode = goldSDKMethods.uploadFile(presignedUrl, imageFile, "image/jpeg");
+    /**
+     * Upload File API.
+     * Uploads PAN / AADHAAR image using previously generated presigned URL.
+     * Reads test image from resources and validates upload status.
+     * Depends on uploadDocument execution.
+     */
+
+    @Test(priority = 7, description = "Upload file using presigned URL", dataProvider = "uploadDocTypes", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadDocument")
+    public void uploadFile(String docType) throws Exception {
+        String fileName = docType.equals("PAN") ? "testData/PanCard.jpeg" : "testData/AadhaarCard.jpeg";
+        URL resource = getClass().getClassLoader().getResource(fileName);
+        if (resource == null) {
+            throw new RuntimeException("File not found: " + fileName);
+        }
+        File imageFile = Paths.get(resource.toURI()).toFile();
+        int statusCode = goldSDKMethods.uploadFile(presignedUrlMap.get(docType), imageFile, "image/jpeg");
         goldSDKValidation.validateUploadFile(statusCode);
     }
 
-    @Test(priority = 8, description = "Initiate KYC using PAN document", dataProvider = "initiateKycScenarios", dataProviderClass = GoldSDKDataProvider.class)
-    public void initiateKyc(InitiateKycRequest request, GoldSDKDataProvider.ExpectedError expectedError) {
-        Map<String, String> headers = Map.of("Authorization", accessToken);
-        try {
-            if (accessToken == null) {
-                softAssert.fail("Access token is null. Authentication might have failed.");
-                return;
-            }
-            // Inject documentImageId obtained from Upload API
-            request.getPanVerificationDoc().setDocFrontImageId(documentImageId);
-            InitiateKycResponse response = goldSDKMethods.initiateKyc(headers, request);
-            goldSDKValidation.validateInitiateKyc(response, request, documentImageId, expectedError);
-        } catch (Exception e) {
-            log.error("Exception while initiating KYC", e);
-            softAssert.fail("Initiate KYC test failed: " + e.getMessage());
-        } finally {
-            goldSDKValidation.assertAll();
-        }
-    }
-    @Test(priority = 9, description = "Fetch KYC status", dataProvider = "getKycStatusScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "initiateKyc")
-    public void getKycStatus(GoldSDKDataProvider.ExpectedError expectedError) {
+    /**
+     * Initiate KYC API.
+     * Triggers PAN or AADHAAR KYC based on request type.
+     * Injects uploaded document imageId and validates API + DB status.
+     * Depends on successful file upload.
+     */
+    @Test(priority = 8, description = "Initiate KYC", dataProvider = "initiateKycScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadFile")
+    public void initiateKyc(BaseKycRequest request, GoldSDKDataProvider.ExpectedError expectedError) {
+        String imageId;
+        String docType;
+        InitiateKycResponse response;
         Map<String, String> headers = Map.of("Authorization", accessToken);
         try {
             if (accessToken == null) {
                 softAssert.fail("Access token is null");
                 return;
             }
+            // -------- PAN FLOW --------
+            if (request instanceof InitiatePanKycRequest panReq) {
+                docType = panReq.getPanVerificationDoc().getKycDocType();
+                imageId = documentImageIdMap.get(docType);
+                System.out.println("PAN ImageId: " + imageId);
+                panReq.getPanVerificationDoc().setDocFrontImageId(imageId);
+                response = goldSDKMethods.initiateKyc(headers, panReq);
+                goldSDKValidation.validateInitiateKyc(response, docType, expectedError);
+            }
+            // -------- AADHAAR FLOW --------
+            else if (request instanceof InitiateAadhaarKycRequest aadhaarReq) {
+                docType = aadhaarReq.getKycVerificationDoc().getKycDocType();
+                imageId = documentImageIdMap.get(docType);
+                System.out.println("AADHAAR ImageId: " + imageId);
+                aadhaarReq.getKycVerificationDoc().setDocFrontImageId(imageId);
+                response = goldSDKMethods.initiateKyc(headers, aadhaarReq);
+                goldSDKValidation.validateInitiateKyc(response, docType, expectedError);
+            }
+        } catch (Exception e) {
+            log.error("Exception while initiating KYC", e);
+            softAssert.fail("Initiate KYC failed: " + e.getMessage());
+        } finally {
+            goldSDKValidation.assertAll();
+        }
+    }
+
+    /**
+     * Fetch KYC Status API.
+     * Retrieves verification status for uploaded PAN/AADHAAR documents.
+     * Validates response fields and DB verification status.
+     * Depends on successful KYC initiation.
+     */
+    @Test(priority = 10, description = "Fetch KYC status", dataProvider = "kycStatusScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "initiateKyc")
+    public void getKycStatus(String docType, GoldSDKDataProvider.ExpectedError expectedError) {
+        Map<String, String> headers = Map.of("Authorization", accessToken);
+        try {
+            if (accessToken == null) {
+                softAssert.fail("Access token is null. Authentication might have failed.");
+                return;
+            }
             KycStatusResponse response = goldSDKMethods.getKycStatus(headers);
-            goldSDKValidation.validateKycStatus(response, expectedError);
+            goldSDKValidation.validateKycStatus(response, docType, expectedError);
         } catch (Exception e) {
             log.error("Exception while fetching KYC status", e);
             softAssert.fail("KYC Status test failed: " + e.getMessage());

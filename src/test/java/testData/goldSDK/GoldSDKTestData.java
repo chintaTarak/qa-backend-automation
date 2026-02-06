@@ -11,7 +11,6 @@ public class GoldSDKTestData {
     public static final String INVALID_USER_ID = "693bee05cca5cf8ea8e1c9";
     public static final String TENANT_ID = "67864bb82164c866c4227627";
     public static final String USER_REF_ID = "TEST-USER-Toufiq-596";
-    public static final String INVALID_USER_ID ="693bee05cca5cf8ea8e1c9";
     public static final String EMPTY_USER_REF_ID = "";
     public static final String X_API_USER =
             "67864bb82164c866c4227627:5fed5db9db9e4de58a800abc4e5b2cfc";
@@ -28,7 +27,10 @@ public class GoldSDKTestData {
     public static final int MAX_MANDATE_AMOUNT = 20;
     public static final int MANDATE_AMOUNT = 20;
     public static final String PACKAGE_NAME = "com.phonepe.com";
-    public static final String KYC_DOC_TYPE = "PAN";
-    public static final String DOC_NUMBER = "CHTPJ7201E";
-    public static final String DOB = "29-10-1899";
+    public static final String FULL_NAME = "SETTIPALLI JASWANTH";
+    public static final String KYC_PAN_DOC_TYPE = "PAN";
+    public static final String KYC_AADHAAR_DOC_TYPE = "AADHAAR";
+    public static final String PAN_DOC_NUMBER = "CHTPJ7281E";
+    public static final String KYC_DOC_NUMBER = "388819678662";
+    public static final String DOB = "29-10-1999";
 }

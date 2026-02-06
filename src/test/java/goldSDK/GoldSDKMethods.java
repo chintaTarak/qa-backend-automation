@@ -4,8 +4,9 @@ import io.restassured.response.Response;
 import org.jarApiAutomation.configuration.BaseUri;
 import org.jarApiAutomation.data.common.RestRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.AutoPayInitiateRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.BaseKycRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
-import org.jarApiAutomation.data.requestModel.goldSDK.InitiateKycRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.BaseKycRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
 import org.jarApiAutomation.data.responseModel.goldSDK.AutoPayInitiateResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
@@ -134,7 +135,6 @@ public class GoldSDKMethods {
         return uploadResponse;
     }
     public int uploadFile(String presignedUrl, File file, String contentType) {
-
         Response response =
                 given()
                         .header("Content-Type", contentType)
@@ -148,7 +148,7 @@ public class GoldSDKMethods {
 
         return response.getStatusCode();
     }
-    public InitiateKycResponse initiateKyc(Map<String, String> headers, InitiateKycRequest request) {
+    public InitiateKycResponse initiateKyc(Map<String, String> headers, BaseKycRequest request) {
         RestRequest req = RestRequest.builder()
                 .url(getApiEndPoint(BaseUri.GOLD_BASE_AUTH_URI, BaseUri.V1, GoldSDKEndPoints.KYC))
                 .headers(headers)
@@ -169,5 +169,4 @@ public class GoldSDKMethods {
         deserializedResponse.setStatusCode(response.getStatusCode());
         return deserializedResponse;
     }
-
 }

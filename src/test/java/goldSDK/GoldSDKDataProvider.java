@@ -9,7 +9,8 @@ import static testData.goldSDK.GoldSDKTestData.*;
 import java.util.Map;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
-import org.jarApiAutomation.data.requestModel.goldSDK.InitiateKycRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.InitiateAadhaarKycRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.InitiatePanKycRequest;
 import org.jarApiAutomation.utils.CommonUtil;
 import org.testng.annotations.DataProvider;
 
@@ -35,115 +36,90 @@ public class GoldSDKDataProvider {
     public Object[][] userDetails() {
         String userRefId = CommonUtil.generateMongoId();
         return new Object[][] {
-            // Success case
-            {
-                createUser(
-                        userRefId,
-                        USER_FIRST_NAME,
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE),
-                X_API_USER,
-                null
-            },
-            // Invalid x-api-key
-            {
-                createUser(
-                        userRefId,
-                        USER_FIRST_NAME,
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE),
-                INVALID_X_API_USER,
-                ExpectedError.ACCESS_DENIED
-            },
-            // Empty x-api-key
-            {
-                createUser(
-                        userRefId,
-                        USER_FIRST_NAME,
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE),
-                EMPTY_X_API_USER,
-                ExpectedError.UNAUTHORIZE
-            },
-            // Missing mandatory userRefId
-            {
-                createUser(
-                        EMPTY_USER_REF_ID,
-                        USER_FIRST_NAME,
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE),
-                X_API_USER,
-                ExpectedError.EMPTY_REF_ID_BAD_REQUEST
-            },
-        return new Object[][]{
                 // Success case
-                {createUser(USER_REF_ID, USER_FIRST_NAME, USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE), X_API_USER, null},
-//                // Invalid x-api-key
-//                {createUser(USER_REF_ID, USER_FIRST_NAME, USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE), INVALID_X_API_USER, ExpectedError.ACCESS_DENIED},
-//                // Empty x-api-key
-//                {createUser(USER_REF_ID, USER_FIRST_NAME, USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE), EMPTY_X_API_USER, ExpectedError.UNAUTHORIZE},
-//                // Missing mandatory userRefId
-//                {createUser(EMPTY_USER_REF_ID, USER_FIRST_NAME, USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE), X_API_USER, ExpectedError.BAD_REQUEST},
+                {
+                        createUser(
+                                userRefId,
+                                USER_FIRST_NAME,
+                                USER_LAST_NAME,
+                                USER_PHONE_NUMBER,
+                                USER_COUNTRY_CODE),
+                        X_API_USER,
+                        null
+                },
+                // Invalid x-api-key
+                {
+                        createUser(
+                                userRefId,
+                                USER_FIRST_NAME,
+                                USER_LAST_NAME,
+                                USER_PHONE_NUMBER,
+                                USER_COUNTRY_CODE),
+                        INVALID_X_API_USER,
+                        ExpectedError.ACCESS_DENIED
+                },
+                // Empty x-api-key
+                {
+                        createUser(
+                                userRefId,
+                                USER_FIRST_NAME,
+                                USER_LAST_NAME,
+                                USER_PHONE_NUMBER,
+                                USER_COUNTRY_CODE),
+                        EMPTY_X_API_USER,
+                        ExpectedError.UNAUTHORIZE
+                },
+                // Missing mandatory userRefId
+                {
+                        createUser(
+                                EMPTY_USER_REF_ID,
+                                USER_FIRST_NAME,
+                                USER_LAST_NAME,
+                                USER_PHONE_NUMBER,
+                                USER_COUNTRY_CODE),
+                        X_API_USER,
+                        ExpectedError.EMPTY_REF_ID_BAD_REQUEST
+                },
         };
     }
 
     @DataProvider(name = "userAuthDetails")
     public Object[][] userAuthDetails() {
         return new Object[][] {
-            // Success case
-            {X_API_USER, Map.of("userId", userId), null},
-            // Empty x-api-key
-            {EMPTY_USER_REF_ID, Map.of("userId", userId), ExpectedError.UNAUTHORIZE},
-            // Invalid x-api-key
-            {INVALID_X_API_USER, Map.of("userId", INVALID_USER_ID), ExpectedError.ACCESS_DENIED},
-            // Missing userId query parameter
-            {X_API_USER, null, ExpectedError.USER_AUTH_BAD_REQUEST},
-        return new Object[][]{
                 // Success case
-                {X_API_USER, null, null},
-//                // Empty x-api-key
-//                {EMPTY_USER_REF_ID, Map.of("userId", USER_ID), ExpectedError.UNAUTHORIZE},
-//                // Invalid x-api-key
-//                {INVALID_X_API_USER, Map.of("userId", INVALID_USER_ID), ExpectedError.ACCESS_DENIED},
-//                // Missing userId query parameter
-//                {X_API_USER, null, ExpectedError.USER_AUTH_BAD_REQUEST},
+                {X_API_USER, Map.of("userId", userId), null},
+                // Empty x-api-key
+                {EMPTY_USER_REF_ID, Map.of("userId", userId), ExpectedError.UNAUTHORIZE},
+                // Invalid x-api-key
+                {INVALID_X_API_USER, Map.of("userId", INVALID_USER_ID), ExpectedError.ACCESS_DENIED},
+                // Missing userId query parameter
+                {X_API_USER, null, ExpectedError.USER_AUTH_BAD_REQUEST},
         };
     }
 
     @DataProvider(name = "getUserScenarios")
     public Object[][] getUserDetails() {
         return new Object[][] {
-            // Fetch user details with valid userId
-            {Map.of("userId", userId), null},
-            // Fetch user details with empty userId
-            {Map.of("userId", EMPTY_USER_REF_ID), null},
-            // Fetch user details with invalid userId
-            {Map.of("userId", INVALID_USER_ID), null},
-        return new Object[][]{
-                //Fetch user details with valid userId
-                {null},
-//                //Fetch user details with empty userId
-//                {Map.of("userId", EMPTY_USER_REF_ID), null},
-//                //Fetch user details with invalid userId
-//                {Map.of("userId", INVALID_USER_ID), null},
+                // Fetch user details with valid userId
+                {Map.of("userId", userId), null},
+                // Fetch user details with empty userId
+                {Map.of("userId", EMPTY_USER_REF_ID), null},
+                // Fetch user details with invalid userId
+                {Map.of("userId", INVALID_USER_ID), null},
         };
     }
 
     @DataProvider(name = "getRefreshToken")
     public Object[][] getRefreshToken() {
         return new Object[][] {
-            // Success case
-            {createToken(GoldSDKTest.refreshToken, GoldSDKTest.accessToken), null},
-            // Empty refresh token
-            {createToken(EMPTY_REFRESH_TOKEN, GoldSDKTest.accessToken), ExpectedError.EMPTY_REFRSHTOKEN_BAD_REQUEST},
-            // Empty access token
-            {createToken(GoldSDKTest.refreshToken, EMPTY_ACCESS_TOKEN), ExpectedError.EMPTY_ACCESSTOKEN_BAD_REQUEST},
-            // Both refresh token and access token empty
-            {createToken(EMPTY_REFRESH_TOKEN, EMPTY_ACCESS_TOKEN), ExpectedError.EMPTY_TOKEN_BAD_REQUEST},
+                // Success case
+                {createToken(GoldSDKTest.refreshToken, GoldSDKTest.accessToken), null},
+                // Empty refresh token
+                {createToken(EMPTY_REFRESH_TOKEN, GoldSDKTest.accessToken), ExpectedError.EMPTY_REFRSHTOKEN_BAD_REQUEST},
+                // Empty access token
+                {createToken(GoldSDKTest.refreshToken, EMPTY_ACCESS_TOKEN), ExpectedError.EMPTY_ACCESSTOKEN_BAD_REQUEST},
+                // Both refresh token and access token empty
+                {createToken(EMPTY_REFRESH_TOKEN, EMPTY_ACCESS_TOKEN), ExpectedError.EMPTY_TOKEN_BAD_REQUEST},
         };
     }
 
@@ -152,34 +128,57 @@ public class GoldSDKDataProvider {
         return new Object[][] {
                 // valid case
                 {initiateAutoPayRequest(GoldSDKTest.frequency,MANDATE_AMOUNT,MAX_MANDATE_AMOUNT,PACKAGE_NAME),Map.of("Authorization","Bearer "+ GoldSDKTest.accessToken),null},
+        };
+    }
+
+    @DataProvider(name = "uploadDocTypes")
+    public Object[][] uploadDocTypes() {
         return new Object[][]{
-                // Success case
-                {createToken(GoldSDKTest.refreshToken, GoldSDKTest.accessToken), null},
-//                // Empty refresh token
-//                {createToken(EMPTY_REFRESH_TOKEN, GoldSDKTest.accessToken), ExpectedError.BAD_REQUEST},
-//                // Empty access token
-//                {createToken(GoldSDKTest.refreshToken, EMPTY_ACCESS_TOKEN), ExpectedError.BAD_REQUEST},
-//                // Both refresh token and access token empty
-//                {createToken(EMPTY_REFRESH_TOKEN, EMPTY_ACCESS_TOKEN), ExpectedError.BAD_REQUEST},
+                {"PAN"},
+                {"AADHAAR"}
         };
     }
     @DataProvider(name = "initiateKycScenarios")
     public Object[][] initiateKycScenarios() {
         return new Object[][]{
-                //  Happy path
-                {new InitiateKycRequest(USER_PHONE_NUMBER, USER_COUNTRY_CODE, new InitiateKycRequest.PanVerificationDoc(KYC_DOC_TYPE, DOC_NUMBER, null, USER_FIRST_NAME,DOB)), null},
-                // Missing docFrontImageId
-//                {new InitiateKycRequest(USER_PHONE_NUMBER, USER_COUNTRY_CODE, new InitiateKycRequest.PanVerificationDoc(KYC_DOC_TYPE, DOC_NUMBER, null, USER_FIRST_NAME, DOB)),ExpectedError.BAD_REQUEST}
+                // -------- PAN FLOW --------
+                {
+                        new InitiatePanKycRequest(
+                                USER_PHONE_NUMBER,
+                                USER_COUNTRY_CODE,
+                                new InitiatePanKycRequest.panVerificationDoc(
+                                        KYC_PAN_DOC_TYPE,
+                                        PAN_DOC_NUMBER,
+                                        null,
+                                        FULL_NAME,
+                                        DOB
+                                )
+                        ),
+                        null
+                },
+                // -------- AADHAAR FLOW --------
+                {
+                        new InitiateAadhaarKycRequest(
+                                USER_PHONE_NUMBER,
+                                USER_COUNTRY_CODE,
+                                new InitiateAadhaarKycRequest.kycVerificationDoc(
+                                        KYC_AADHAAR_DOC_TYPE,
+                                        KYC_DOC_NUMBER,
+                                        null,
+                                        FULL_NAME,
+                                        DOB
+                                )
+                        ),
+                        null
+                }
         };
     }
-    @DataProvider(name = "getKycStatusScenarios")
-    public Object[][] getKycStatusScenarios() {
+
+    @DataProvider(name = "kycStatusScenarios")
+    public Object[][] kycStatusScenarios() {
         return new Object[][]{
-                {null}, // success
-                // {ExpectedError.UNAUTHORIZE},
-                // {ExpectedError.ACCESS_DENIED}
+                {"PAN", null},
+                {"AADHAAR", null}
         };
     }
-
-
 }

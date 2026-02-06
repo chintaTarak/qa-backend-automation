@@ -1,17 +1,17 @@
 package goldSDK;
 
 import org.bson.Document;
+import org.jarApiAutomation.data.requestModel.goldSDK.BaseKycRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
-import org.jarApiAutomation.data.requestModel.goldSDK.InitiateKycRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.BaseKycRequest;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
-import org.jarApiAutomation.data.responseModel.goldSDK.AutoPayInitiateResponse;
-import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
-import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
-import org.jarApiAutomation.data.responseModel.goldSDK.UserAuthResponse;
+import org.jarApiAutomation.data.responseModel.goldSDK.*;
 import org.jarApiAutomation.utils.ApiAssertions;
 import org.testng.asserts.SoftAssert;
 import testData.goldSDK.GoldSDKTestData;
 import java.util.List;
+import java.util.Map;
+
 import static org.jarApiAutomation.dbConfiguration.DBConstants.*;
 import static org.jarApiAutomation.dbConfiguration.DataBaseFactory.changeJarMongo;
 import static org.jarApiAutomation.dbConfiguration.DataBaseFactory.tenantMongo;
@@ -97,20 +97,21 @@ public class GoldSDKValidation extends ApiAssertions {
                 createUserRequest.getCountryCode() + createUserRequest.getPhoneNumber(),
                 "PhoneNumber");
     }
-    public void validateKycInDB(String userId, String expectedDocFrontId, String expectedName, String expectedKycStatus) {
-        // Fetch latest KYC document for user
-        Document doc = tenantMongo().fetchData(TENANTS_DB, TENANT_KYC_COLLECTION, "userId", userId, "createdAt");
-        softAssert.assertNotNull(doc, "KYC document not found in DB for userId: " + userId);
-        // Extract DB values
-        String kycDocType = getValueFromDocument(doc, "kycDocType");
+    public void validateKycInDB(String userId, String docType, String expectedStatus) {
+        Document doc = tenantMongo().fetchDataMultiFilter(
+                TENANTS_DB,
+                TENANT_KYC_COLLECTION,
+                Map.of(
+                        "userId", userId,
+                        "kycDocType", docType
+                ),
+                "_id"
+        );
+        softAssert.assertNotNull(doc, "KYC document not found for " + docType);
         String verificationStatus = getValueFromDocument(doc, "verificationStatus");
-        String name = getValueFromDocument(doc, "name");
-        String docFrontId = getValueFromDocument(doc, "docFrontId");
-        Boolean isActive = doc.getBoolean("isActive");
-        // Assertions
-        assertFieldsEquals(kycDocType, "PAN", "KYC Doc Type");
-        assertFieldsEquals(verificationStatus, expectedKycStatus, "Verification Status");
+        assertFieldsEquals(verificationStatus, expectedStatus, "Verification Status");
     }
+
 
 
     public void validateUserCreation(
@@ -122,9 +123,6 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-     // commented out as the API response is inconsistent (returns true/false intermittently)
-//            softAssert.assertFalse(
-//                    response.isSuccess(), "success should be false for error scenario");
             assertFieldsEquals(
                     response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
             String actualErrorMsg =
@@ -153,9 +151,6 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-            // commented out as the API response is inconsistent (returns true/false intermittently)
-//            softAssert.assertFalse(
-//                    response.isSuccess(), "success should be false for error scenario");
             assertFieldsEquals(
                     response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
             String actualErrorMsg =
@@ -168,7 +163,7 @@ public class GoldSDKValidation extends ApiAssertions {
                     "errorMessage",
                     "Expected error message to contain: " + expectedError.getErrorMessage()
             );
-            String actualErrorMsg = response.getErrorMessage() != null ? response.getErrorMessage() : response.getError();
+            actualErrorMsg = response.getErrorMessage() != null ? response.getErrorMessage() : response.getError();
             softAssert.assertTrue(actualErrorMsg != null && actualErrorMsg.contains(expectedError.getErrorMessage()), "Error message mismatch");
             return;
         }
@@ -185,8 +180,6 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-            // commented out as the API response is inconsistent (returns true/false intermittently)
-//            assertFieldFalse(response.isSuccess(), "success", "Expected success=false for error scenario");
             assertFieldsEquals(
                     response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
             String actualErrorMsg =
@@ -213,17 +206,7 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-            // commented out as the API response is inconsistent (returns true/false )
-//            assertFieldFalse(
-//                    response.isSuccess(),
-//                    "success",
-//                    "Expected success to be false for error scenario"
-//            );
-            assertFieldsEquals(
-                    response.getErrorCode(),
-                    expectedError.getErrorCode(),
-                    "Error code mismatch"
-            );
+            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
             String actualErrorMsg =
                     response.getErrorMessage() != null
                             ? response.getErrorMessage()
@@ -269,7 +252,6 @@ public class GoldSDKValidation extends ApiAssertions {
     private void validateAutoPayInitiateInDB(AutoPayInitiateResponse.DataObj data) {
         // Fetch the document from MongoDB
         Document doc = changeJarMongo().fetchData(DIGIGOLD_SDK_DB, AUTOPAYS_COLLECTION, "_id", data.getAutopayId(), "_id");
-
         // Extract fields from the document
         String userId = getValueFromDocument(doc, "userId");
         String autopayRefId = getValueFromDocument(doc, "sourceRefId");
@@ -284,8 +266,6 @@ public class GoldSDKValidation extends ApiAssertions {
         String frequency = getValueFromDocument(doc, "frequency");
         int executionDay = Integer.parseInt(getValueFromDocument(doc, "executionDay"));
         List<Document> changeLogs = doc.getList("changeLogs", Document.class);
-
-
         // Compare with response object
         assertFieldsEquals(userId, data.getUserId(), "UserId");
         assertFieldsEquals(autopayRefId, data.getAutopayRefId(), "AutopayRefId");
@@ -300,13 +280,10 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldNotNull(pgConfigId, "PgConfigId");
         assertFieldNotNull(orderId, "OrderId");
         assertFieldNotNull(changeLogs, "ChangeLogs");
-
     }
     public void validateUpload(UploadResponse response) {
-
         assertFieldsEquals(response.getStatusCode(), 200, "Status code");
         assertFieldTrue(response.isSuccess(), "success", "Expected success=true");
-
         assertFieldNotNull(response.getData(), "data");
         assertFieldNotNull(response.getData().getPreSignedUrlPath(), "preSignedUrlPath");
         assertFieldNotNull(response.getData().getDocumentImageId(), "documentImageId");
@@ -314,41 +291,72 @@ public class GoldSDKValidation extends ApiAssertions {
     public void validateUploadFile(int statusCode) {
         assertFieldsEquals(statusCode, 200, "Upload file status code");
     }
-    public void validateInitiateKyc(InitiateKycResponse response,  InitiateKycRequest request, String documentImageId, GoldSDKDataProvider.ExpectedError expectedError) {
+    public void validateInitiateKyc(InitiateKycResponse response, String docType, GoldSDKDataProvider.ExpectedError expectedError) {
         int expectedStatusCode = expectedError == null ? 200 : expectedError.getExpectedStatusCode();
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         //  ERROR FLOW
         if (expectedStatusCode != 200) {
-            softAssert.assertFalse(response.isSuccess(), "success should be false for error scenario");
-            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
+            assertFieldFalse(response.isSuccess(), "success", "Error scenario – should be false");
+            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "errorCode");
             String actualMsg = response.getErrorMessage() != null ? response.getErrorMessage() : response.getError();
-            softAssert.assertTrue(actualMsg != null && actualMsg.contains(expectedError.getErrorMessage()), "Error message mismatch");
+            assertFieldTrue(actualMsg != null && actualMsg.contains(expectedError.getErrorMessage()), "errorMessage", "Error message mismatch");
             return;
         }
-
         // SUCCESS FLOW
         assertFieldTrue(response.isSuccess(), "success", "Expected success=true");
         assertFieldNotNull(response.getData(), "data");
         InitiateKycResponse.DataObj data = response.getData();
         assertFieldNotNull(data.getUserId(), "userId");
         assertFieldsEquals(data.getVerificationStatus(), "PENDING", "verificationStatus");
-        validateKycInDB(response.getData().getUserId(), documentImageId, request.getPanVerificationDoc().getName(), "PENDING");
+        // DB VALIDATION
+        validateKycInDB(data.getUserId(), docType, "PENDING");
     }
-    public void validateKycStatus(KycStatusResponse response, GoldSDKDataProvider.ExpectedError expectedError) {
+    public void validateKycStatus(KycStatusResponse response, String docType, GoldSDKDataProvider.ExpectedError expectedError) throws InterruptedException {
         int expectedStatusCode = expectedError == null ? 200 : expectedError.getExpectedStatusCode();
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
-        // ERROR FLOW
+        // ---------- ERROR FLOW ----------
         if (expectedError != null) {
-            softAssert.assertFalse(response.isSuccess(), "success should be false");
-            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "Error code");
+            assertFieldFalse(response.isSuccess(), "success", "Error scenario");
+            assertFieldsEquals(response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
             return;
         }
-        // SUCCESS FLOW
+        // ---------- SUCCESS FLOW ----------
         assertFieldTrue(response.isSuccess(), "success", "Expected success=true");
-        assertFieldsEquals(response.getData().isKycVerified(), "true", "Status code");
-        List<KycStatusResponse.KycDocumentDetails> docs = response.getData().getKycDocumentDetails();
-        assertFieldsEquals(docs.get(0).getVerificationStatus(), "SUCCESS", "Verification Status");
-        assertFieldNotNull(response.getData(), "KYC data");
-        softAssert.assertNotNull(response.getData().getUserId(), "userId");
+        assertFieldNotNull(response.getData(), "data");
+        KycStatusResponse.DataObj data = response.getData();
+        assertFieldNotNull(data.getUserId(), "userId");
+        assertFieldTrue(data.isPanKycVerified(), "panKycVerified", "Should be true");
+        assertFieldTrue(data.isKycVerified(), "kycVerified", "Should be true");
+        // ---------- DOCUMENT LOOP ----------
+        List<KycStatusResponse.KycDocumentDetails> docs = data.getKycDocumentDetails();
+        assertFieldNotNull(docs, "kycDocumentDetails");
+        assertFieldTrue(docs.size() > 0, "kycDocumentDetails", "No KYC documents found");
+        for (KycStatusResponse.KycDocumentDetails doc : docs) {
+            assertFieldNotNull(doc.getName(), "name");
+            assertFieldNotNull(doc.getKycDocType(), "kycDocType");
+            assertFieldNotNull(doc.getVerificationStatus(), "verificationStatus");
+            assertFieldTrue(doc.getDocNumber() == null || doc.getDocNumber().contains("*"), "docNumber", "Doc number should be masked");
+            // ---- INLINE DB WAIT ----
+            // KYC verification is asynchronous. After Initiate API returns PENDING,
+            // the DB status takes a few seconds to update (VERIFIED / FAILED).
+            // Hence we poll the DB with limited retries instead of a fixed sleep
+            // to avoid flaky tests and ensure we validate the final verification status.
+            String finalStatus = "PENDING";
+            int retry = 0;
+            while ("PENDING".equalsIgnoreCase(finalStatus) && retry < 5) {
+                Document dbDoc = tenantMongo().fetchData(
+                        TENANTS_DB,
+                        TENANT_KYC_COLLECTION,
+                        "userId",
+                        data.getUserId(),
+                        "createdAt"
+                );
+                finalStatus = getValueFromDocument(dbDoc, "verificationStatus");
+                if (!"PENDING".equalsIgnoreCase(finalStatus)) break;
+                Thread.sleep(2000);
+                retry++;
+            }
+            assertFieldsEquals(finalStatus, "VERIFIED", "verificationStatus");
+            }
+        }
     }
-}
