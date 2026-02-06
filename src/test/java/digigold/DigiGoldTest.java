@@ -10,12 +10,14 @@ import base.SellCalculator;
 import com.fasterxml.jackson.databind.JsonNode;
 import io.restassured.response.Response;
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.http.HttpStatus;
 import org.bson.Document;
 import org.jarApiAutomation.data.requestModel.digiGold.*;
+import org.jarApiAutomation.data.responseModel.digiGold.*;
+import org.jarApiAutomation.dbConfiguration.DataBaseFactory;
+import org.testng.ITestContext;
 import org.jarApiAutomation.data.requestModel.digiGold.CreateUserRequest;
 import org.jarApiAutomation.data.requestModel.digiGold.SellConfirmRequest;
 import org.jarApiAutomation.data.requestModel.digiGold.SellVerifyRequest;
@@ -23,12 +25,10 @@ import org.jarApiAutomation.data.responseModel.digiGold.*;
 import org.jarApiAutomation.data.responseModel.digiGold.SellConfirmResponse;
 import org.jarApiAutomation.data.responseModel.digiGold.SellPriceResponse;
 import org.jarApiAutomation.data.responseModel.digiGold.SellVerifyResponse;
-import org.jarApiAutomation.dbConfiguration.DataBaseFactory;
 import org.jarApiAutomation.utils.CommonUtil;
-import org.testng.ITestContext;
-import org.testng.Reporter;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+import org.testng.annotations.*;
 import org.testng.asserts.SoftAssert;
 
 @Slf4j
@@ -43,6 +43,7 @@ public class DigiGoldTest extends BaseTest {
     public String orderId;
     public BigDecimal assetPrice;
     public BigDecimal sellAssetPrice;
+    public String invoiceId;
 
     @BeforeMethod
     public void setup() {
@@ -132,7 +133,6 @@ public class DigiGoldTest extends BaseTest {
             int expectedStatusCode,
             String expectedErrorCode,
             String expectedErrorMessage,
-            boolean dbCheckRequired,
             ITestContext context) {
         try {
             Map<String, String> headers =
@@ -141,17 +141,12 @@ public class DigiGoldTest extends BaseTest {
                             : Map.of("X-Tenant-Info", tenantInfo);
             BuyPriceResponse buyPriceResponse =
                     digiGoldMethods.buyPrice(Map.of("materialCode", materialCode), headers);
-            Document doc = null;
-            if (expectedStatusCode == HttpStatus.SC_OK && dbCheckRequired) {
+            if (expectedStatusCode == HttpStatus.SC_OK ) {
                 String rateId = buyPriceResponse.getData().getId();
                 assetPrice = buyPriceResponse.getData().getAssetPrice();
-                doc =
-                        DataBaseFactory.digiGoldMongo()
-                                .fetchData(DIGI_GOLD_DB, MATERIAL_RATE, id, rateId, SORT_FIELD);
                 context.setAttribute("rateId", rateId);
             }
             digiGoldValidation.assertBuyPriceResponse(
-                    doc,
                     buyPriceResponse,
                     expectedStatusCode,
                     expectedErrorCode,
@@ -190,19 +185,12 @@ public class DigiGoldTest extends BaseTest {
                                     .getSixDecimal());
                 }
             }
-            Map<String, String> headers =
-                    "Without-Security-Header".equalsIgnoreCase(tenantInfo)
-                            ? null
-                            : Map.of("X-Tenant-Info", tenantInfo);
-            BuyVerifyResponse buyVerifyResponse =
-                    digiGoldMethods.buyVerify(headers, buyVerifyRequest);
-            if (buyVerifyResponse != null && buyVerifyResponse.getData() != null) {
-                String orderId = buyVerifyResponse.getData().getOrderId();
-                Reporter.getCurrentTestResult().getTestContext().setAttribute("orderId", orderId);
-            }
-            digiGoldValidation.assertBuyVerifyResponse(
-                    buyVerifyResponse, expectedStatusCode, expectedErrorCode, expectedErrorMessage);
-        } catch (Exception e) {
+            Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(tenantInfo) ? null : Map.of("X-Tenant-Info", tenantInfo);
+            BuyVerifyResponse buyVerifyResponse = digiGoldMethods.buyVerify(headers, buyVerifyRequest);
+            digiGoldValidation.assertBuyVerifyResponse(buyVerifyResponse, expectedStatusCode,  expectedErrorCode,  expectedErrorMessage);
+        }
+        catch (Exception e)
+        {
             log.error("Exception in Get buy verify: ", e);
             softAssert.fail("Buy verify test failed due to exception: " + e.getMessage());
         } finally {
@@ -218,15 +206,12 @@ public class DigiGoldTest extends BaseTest {
     public void buyConfirm(
             BuyConfirmRequest buyConfirmRequest, String tenantInfo, ExpectedError expectedError) {
         try {
-            Map<String, String> headers =
-                    "Without-Security-Header".equalsIgnoreCase(tenantInfo)
-                            ? null
-                            : Map.of("X-Tenant-Info", tenantInfo);
-            BuyConfirmResponse buyConfirmResponse =
-                    digiGoldMethods.buyConfirm(headers, buyConfirmRequest);
-            digiGoldValidation.assertBuyConfirm(buyConfirmResponse, expectedError);
-
-        } catch (Exception e) {
+            Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(tenantInfo) ? null : Map.of("X-Tenant-Info", tenantInfo);
+            BuyConfirmResponse  buyConfirmResponse = digiGoldMethods.buyConfirm(headers, buyConfirmRequest);
+                digiGoldValidation.assertBuyConfirm(buyConfirmResponse, expectedError);
+        }
+        catch (Exception e)
+        {
             log.error("Exception in Get buy confirm: ", e);
             softAssert.fail("Buy confirm test failed due to exception: " + e.getMessage());
         } finally {
@@ -234,32 +219,22 @@ public class DigiGoldTest extends BaseTest {
         }
     }
 
-    @Test(
-            description = "Validate Buy Status API by fetching latest status",
-            priority = 6,
-            dataProvider = "buyStatusData",
-            dataProviderClass = DigiGoldDataProvider.class)
-    public void buyStatus(
-            String orderId, String userId, String tenantInfo, ExpectedError expectedError) {
+    @Test(description = "Validate Buy Status API by fetching latest status",
+            priority = 6, dataProvider = "buyStatusData", dataProviderClass = DigiGoldDataProvider.class)
+    public void buyStatus(String orderId, String userId, String tenantInfo,ExpectedError expectedError,ITestContext context)
+    {
         try {
-            Map<String, String> headers =
-                    "Without-Security-Header".equalsIgnoreCase(tenantInfo)
-                            ? null
-                            : Map.of("X-Tenant-Info", tenantInfo);
-            Map<String, String> queryParams = new HashMap<>();
-            if (orderId != null && !orderId.isBlank()) {
-                queryParams.put("orderId", orderId);
+            Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(tenantInfo) ? null : Map.of("X-Tenant-Info", tenantInfo);
+            Map<String, String> queryParams = CommonUtil.buildQueryParams
+                    ("orderId", orderId, "userId", userId);
+           BuyStatusResponse buyStatusResponse = digiGoldMethods.buyStatus(queryParams, headers);
+            if (buyStatusResponse.getStatusCode() == HttpStatus.SC_OK )
+            {
+                invoiceId = buyStatusResponse.getData().getInvoiceId();
+                context.setAttribute("invoiceId", invoiceId);
+                int expectedStatusCode = expectedError == null ? 200 : expectedError.getExpectedStatusCode();
+                digiGoldValidation.assertBuyStatus(buyStatusResponse, expectedStatusCode);
             }
-            if (userId != null && !userId.isBlank()) {
-                queryParams.put("userId", userId);
-            }
-            if (queryParams.isEmpty()) {
-                queryParams = null;
-            }
-            BuyStatusResponse buyStatusResponse = digiGoldMethods.buyStatus(queryParams, headers);
-            int expectedStatusCode =
-                    expectedError == null ? 200 : expectedError.getExpectedStatusCode();
-            digiGoldValidation.assertBuyStatus(buyStatusResponse, expectedStatusCode);
 
         } catch (Exception e) {
             log.error("Exception in get buy status: ", e);
@@ -269,17 +244,34 @@ public class DigiGoldTest extends BaseTest {
         }
     }
 
-    @Test(
-            priority = 7,
-            description = "verify Sell Price with Valid and Invalid Scenarios",
-            dataProvider = "sellPriceScenarios",
-            dataProviderClass = DigiGoldDataProvider.class)
-    public void getSellPrice(
-            String MATERIAL_CODE,
-            String X_TENANT_INFO,
-            int expectedStatusCode,
-            ExpectedError expectedError,
-            ITestContext context) {
+       @Test(description = "Check invoice details",dataProvider = "invoiceData",dataProviderClass = DigiGoldDataProvider.class,priority = 7)
+       public void invoiceDetails( String invoiceId, String userId,String tenantInfo, String expectedErrorCode )
+      {
+         try
+         {
+             Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(tenantInfo) ? null : Map.of("X-Tenant-Info", tenantInfo);
+             Map<String, String> queryParams = CommonUtil.buildQueryParams
+                     ("invoiceId", invoiceId, "userId", userId);
+             InvoiceResponse transactionsInvoices=digiGoldMethods.invoiceDetails(queryParams,headers);
+             digiGoldValidation.assertInvoiceDetails(transactionsInvoices,expectedErrorCode);
+         }
+         catch (Exception e)
+         {
+             log.error("Exception in invoice details: ", e);
+             softAssert.fail("Invoice  failed due to exception: " + e.getMessage());
+
+         }
+         finally
+         {
+             digiGoldValidation.assertAll();
+
+         }
+
+     }
+
+
+    @Test(priority = 8, description = "verify Sell Price with Valid and Invalid Scenarios", dataProvider = "sellPriceScenarios", dataProviderClass = DigiGoldDataProvider.class)
+    public void getSellPrice(String MATERIAL_CODE, String X_TENANT_INFO, int expectedStatusCode, ExpectedError expectedError, ITestContext context) {
         try {
             Map<String, String> headers =
                     X_TENANT_INFO == null ? null : Map.of("X-Tenant-Info", X_TENANT_INFO);
@@ -305,7 +297,7 @@ public class DigiGoldTest extends BaseTest {
     }
 
     @Test(
-            priority = 8,
+            priority = 9,
             description = "verify Sell verify with Valid and Invalid Scenarios",
             dataProvider = "sellVerifyScenarios",
             dataProviderClass = DigiGoldDataProvider.class)
@@ -348,7 +340,7 @@ public class DigiGoldTest extends BaseTest {
     }
 
     @Test(
-            priority = 9,
+            priority = 10,
             description = "verify Sell Confirm with Valid and Invalid Scenarios",
             dataProvider = "sellConfirmScenarios",
             dataProviderClass = DigiGoldDataProvider.class)
@@ -373,7 +365,7 @@ public class DigiGoldTest extends BaseTest {
     }
 
     @Test(
-            priority = 10,
+            priority = 11,
             description = "verify Sell User with Valid and Invalid Scenarios",
             dataProvider = "sellStatusScenarios",
             dataProviderClass = DigiGoldDataProvider.class)
@@ -402,7 +394,7 @@ public class DigiGoldTest extends BaseTest {
 
     @Test(
             description = "Validate All Delivery Products Data",
-            priority = 11,
+            priority = 12,
             dataProvider = "searchProduct",
             dataProviderClass = DigiGoldDataProvider.class)
     public void searchAllProduct(
@@ -429,10 +421,9 @@ public class DigiGoldTest extends BaseTest {
             digiGoldValidation.assertAll();
         }
     }
-
     @Test(
             description = "Validate the Products Details",
-            priority = 12,
+            priority = 13,
             dataProvider = "getProductDetails",
             dataProviderClass = DigiGoldDataProvider.class)
     public void getProductDetails(
@@ -456,4 +447,80 @@ public class DigiGoldTest extends BaseTest {
             digiGoldValidation.assertAll();
         }
     }
+
+
+    @Test(description = "Validate Delivery Order API", dataProvider = "deliveryOrderScenarios", dataProviderClass = DigiGoldDataProvider.class, priority = 14)
+    public void deliveryOrder(DeliveryOrderRequest request, String tenantInfo, ExpectedError expectedError,ITestContext context)
+    {
+        Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(tenantInfo) ? null : Map.of("X-Tenant-Info", tenantInfo);
+
+        try
+        {
+            DeliveryOrderResponse  deliveryOrderResponse = digiGoldMethods.deliveryOrder(headers,request );
+            if (deliveryOrderResponse.getStatusCode() == HttpStatus.SC_OK )
+            {
+                orderId = deliveryOrderResponse.getData().getOrderId();
+                context.setAttribute("orderId", orderId);
+                digiGoldValidation.assertDeliveryOrder( deliveryOrderResponse,expectedError);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("Exception in delivery order API: ", e);
+            softAssert.fail("Delivery order failed due to exception: " + e.getMessage());
+        }
+        finally
+        {
+            digiGoldValidation.assertAll();
+        }
+    }
+    @Test(description = "Confirm delivery Order ",priority = 15,dataProvider = "deliveryOrderConfirmData" ,dataProviderClass = DigiGoldDataProvider.class)
+    public void deliveryOrderConfirm( DeliveryOrderConfirmRequest request,String tenantInfo,ExpectedError expectedError)
+    {
+        Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(tenantInfo) ? null : Map.of("X-Tenant-Info", tenantInfo);
+        DeliveryOrderConfirmResponse deliveryOrderConfirmResponse =digiGoldMethods.deliveryOrderConfirm(headers,request);
+        try {
+            if (deliveryOrderConfirmResponse.getStatusCode() == HttpStatus.SC_OK && deliveryOrderConfirmResponse.getData()!=null)
+            {
+                digiGoldValidation.assertDeliveryOrderConfirmation(deliveryOrderConfirmResponse, expectedError);
+            }
+        }
+        catch (Exception e)
+        {
+            log.error("Exception in delivery order API: ", e);
+            softAssert.fail("Delivery order failed due to exception: " + e.getMessage());
+        }
+        finally
+        {
+            digiGoldValidation.assertAll();
+        }
+    }
+    @Test(description = "Get order details ",dataProvider = "deliveryOrderFetchData",dataProviderClass = DigiGoldDataProvider.class,priority = 16)
+    public void deliveryOrderDetails(String orderId, String userId, String tenantInfo ,ExpectedError expectedError)
+    {
+        try
+        {
+            Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(tenantInfo) ? null : Map.of("X-Tenant-Info", tenantInfo);
+
+            Map<String, String> queryParams = CommonUtil.buildQueryParams
+                    ("orderId", orderId, "userId", userId);
+
+            DeliveryOrderResponse deliveryOrderResponse=digiGoldMethods.getOrderDeliveryDetails(headers,queryParams);
+            digiGoldValidation.assertDeliveryOrderDetails( deliveryOrderResponse,expectedError);
+        }
+        catch (Exception e)
+        {
+            log.error("Exception in delivery order details API: ", e);
+            softAssert.fail("Delivery order details failed due to exception: " + e.getMessage());
+        }
+        finally
+        {
+            digiGoldValidation.assertAll();
+        }
+
+    }
+
 }
+
+
+

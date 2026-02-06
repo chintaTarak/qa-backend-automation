@@ -14,7 +14,6 @@
             <class name="activation.manualBuyGold.BuyGoldTest"></class>
         </classes>
     </test>
-
     <!-- ================= Autopay Tests ================= -->
     <test name="Autopay API Tests">
         <groups>

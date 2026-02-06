@@ -79,4 +79,11 @@ public class ApiAssertions {
         softAssert.assertFalse(
                 condition, "Expected " + fieldName + " to be false. " + additionalMessage);
     }
+    // Generic null assertion
+    public <T> void assertFieldNull(T actual, String fieldName) {
+        softAssert.assertNull(
+                actual, "Expected " + fieldName + " to be null, but found: " + actual
+        );
+    }
+
 }

@@ -1,8 +1,8 @@
 package org.jarApiAutomation.dbConfiguration;
 
-import static org.jarApiAutomation.dbConfiguration.DBConstants.*;
-
 import lombok.extern.slf4j.Slf4j;
+
+import static org.jarApiAutomation.dbConfiguration.DBConstants.*;
 
 @Slf4j
 public class DataBaseFactory {
@@ -112,7 +112,7 @@ public class DataBaseFactory {
         if (tenantMongo != null) tenantMongo.closeConnection();
         if (changeJarMongo != null) changeJarMongo.closeConnection();
         if (digiPostgres != null) digiPostgres.disconnect();
-        if (digiSDKPostgres != null) digiSDKPostgres.disconnect();
+        if(digiSDKPostgres!=null)digiSDKPostgres.disconnect();
         log.info("[DB Close] All database connections closed");
     }
 
@@ -127,7 +127,7 @@ public class DataBaseFactory {
             case "digigold":
                 initDigiGoldMongoDB(DIGIGOLD_MONGO_DB_URL);
                 initDigiPostgresDB(DIGIGOLD_PG_URL, DIGIGOLD_PG_USER, DIGIGOLD_PG_PWD);
-                initDigiSDKPostgresDB(DIGIGOLDSDK_PG_URL, DIGIGOLD_PG_USER, DIGIGOLD_PG_PWD);
+                initDigiSDKPostgresDB(DIGIGOLDSDK_PG_URL,DIGIGOLD_PG_USER,DIGIGOLD_PG_PWD);
                 initTenantMongoDB(TENANTS_MONGO_DB_URL);
                 initChangeJarMongoDB(CHANGEJAR_MONGO_DB_URL);
                 break;

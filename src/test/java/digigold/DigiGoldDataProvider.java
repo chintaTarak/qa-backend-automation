@@ -13,16 +13,22 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.jarApiAutomation.data.requestModel.digiGold.BuyConfirmRequest;
 import org.jarApiAutomation.data.requestModel.digiGold.BuyVerifyRequest;
+import org.jarApiAutomation.data.requestModel.digiGold.DeliveryOrderConfirmRequest;
+import org.jarApiAutomation.data.requestModel.digiGold.DeliveryOrderRequest;
 import org.jarApiAutomation.utils.CommonUtil;
 import org.testng.ITestContext;
 import org.testng.annotations.DataProvider;
+import testData.digiGold.DigiGoldTestData;
+
 
 @Slf4j
 public class DigiGoldDataProvider {
 
+
     @AllArgsConstructor
     @Getter
     enum ExpectedError {
+
         ACCESS_DENIED("403", "Access Denied", 400),
         FORBIDDEN(null, null, 403),
         INVALID_USER_REF("20023", "User ref id or phone number is required", 400),
@@ -53,147 +59,52 @@ public class DigiGoldDataProvider {
         private final String errorCode;
         private final String errorMessage;
         private final int expectedStatusCode;
+
     }
 
+
     @DataProvider(name = "userCreationScenarios")
-    public Object[][] userDetails() {
+    public Object[][] userDetails()
+    {
         String userRefId = CommonUtil.generateMongoId();
-        return new Object[][] {
-            {
-                createUser(
-                        USER_FIRST_NAME,
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE,
-                        userRefId),
-                X_TENANT_INFO,
-                200,
-                null,
-                null
-            },
-            {
-                createUser(
-                        "TestUsers",
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE,
-                        userRefId),
-                X_TENANT_INFO,
-                200,
-                null,
-                null
-            },
-            {
-                createUser(
-                        USER_FIRST_NAME,
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE,
-                        userRefId),
-                "Without-Security-Header",
-                ACCESS_DENIED.getExpectedStatusCode(),
-                ACCESS_DENIED.getErrorCode(),
-                ACCESS_DENIED.getErrorMessage()
-            },
-            {
-                createUser(
-                        USER_FIRST_NAME,
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE,
-                        userRefId),
-                "",
-                ACCESS_DENIED.getExpectedStatusCode(),
-                ACCESS_DENIED.getErrorCode(),
-                ACCESS_DENIED.getErrorMessage()
-            },
-            {
-                createUser(
-                        USER_FIRST_NAME,
-                        USER_LAST_NAME,
-                        USER_PHONE_NUMBER,
-                        USER_COUNTRY_CODE,
-                        userRefId),
-                "wrong-x-tenant-info",
-                FORBIDDEN.getExpectedStatusCode(),
-                FORBIDDEN.getErrorCode(),
-                FORBIDDEN.getErrorMessage()
-            },
-            {
-                createUser(USER_FIRST_NAME, USER_LAST_NAME, "", USER_COUNTRY_CODE, ""),
-                X_TENANT_INFO,
-                INVALID_USER_REF.getExpectedStatusCode(),
-                INVALID_USER_REF.getErrorCode(),
-                INVALID_USER_REF.getErrorMessage()
-            },
+        return new Object[][]{
+                {createUser(USER_FIRST_NAME, USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE, userRefId), X_TENANT_INFO, 200, null, null},
+                {createUser("TestUsers", USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE, userRefId), X_TENANT_INFO, 200, null, null},
+                {createUser(USER_FIRST_NAME, USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE, userRefId), "Without-Security-Header", ACCESS_DENIED.getExpectedStatusCode(), ACCESS_DENIED.getErrorCode(), ACCESS_DENIED.getErrorMessage()},
+                {createUser(USER_FIRST_NAME, USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE, userRefId), "", ACCESS_DENIED.getExpectedStatusCode(), ACCESS_DENIED.getErrorCode(), ACCESS_DENIED.getErrorMessage()},
+                {createUser(USER_FIRST_NAME, USER_LAST_NAME, USER_PHONE_NUMBER, USER_COUNTRY_CODE, userRefId), "wrong-x-tenant-info", FORBIDDEN.getExpectedStatusCode(), FORBIDDEN.getErrorCode(), FORBIDDEN.getErrorMessage()},
+                {createUser(USER_FIRST_NAME, USER_LAST_NAME, "", USER_COUNTRY_CODE, ""), X_TENANT_INFO, INVALID_USER_REF.getExpectedStatusCode(), INVALID_USER_REF.getErrorCode(), INVALID_USER_REF.getErrorMessage()},
         };
     }
+
 
     @DataProvider(name = "getUserScenarios")
     public Object[][] getUserDetails() {
 
-        return new Object[][] {
-            // Valid request with correct X-Tenant-Info and valid User ID
-            {X_TENANT_INFO, Map.of("userId", USER_ID), 200, null, null},
-            // Request without Security Header → Access should be denied
-            {
-                "Without-Security-Header",
-                Map.of("userId", USER_ID),
-                ACCESS_DENIED.getExpectedStatusCode(),
-                ACCESS_DENIED.getErrorCode(),
-                ACCESS_DENIED.getErrorMessage()
-            },
-            // Request with incorrect X-Tenant-Info → Forbidden access
-            {
-                "wrong-x-tenant-info",
-                Map.of("userId", USER_ID),
-                FORBIDDEN.getExpectedStatusCode(),
-                FORBIDDEN.getErrorCode(),
-                FORBIDDEN.getErrorMessage()
-            },
-            // Request with invalid User ID → User does not exist
-            {
-                X_TENANT_INFO,
-                Map.of("userId", "wrong-user-id"),
-                USER_NOT_EXIST.getExpectedStatusCode(),
-                USER_NOT_EXIST.getErrorCode(),
-                USER_NOT_EXIST.getErrorMessage()
-            },
-            // Request with missing query parameters → Query parameter validation failure
-            {
-                X_TENANT_INFO,
-                null,
-                QUERY_PARAM_MISSING.getExpectedStatusCode(),
-                QUERY_PARAM_MISSING.getErrorCode(),
-                QUERY_PARAM_MISSING.getErrorMessage()
-            },
+        return new Object[][]{
+                // Valid request with correct X-Tenant-Info and valid User ID
+                {X_TENANT_INFO, Map.of("userId",USER_ID),200, null, null},
+                // Request without Security Header → Access should be denied
+                {"Without-Security-Header", Map.of("userId",USER_ID),ACCESS_DENIED.getExpectedStatusCode(), ACCESS_DENIED.getErrorCode(), ACCESS_DENIED.getErrorMessage()},
+                // Request with incorrect X-Tenant-Info → Forbidden access
+                {"wrong-x-tenant-info", Map.of("userId",USER_ID), FORBIDDEN.getExpectedStatusCode(), FORBIDDEN.getErrorCode(), FORBIDDEN.getErrorMessage()},
+                // Request with invalid User ID → User does not exist
+                {X_TENANT_INFO, Map.of("userId","wrong-user-id"),USER_NOT_EXIST.getExpectedStatusCode(), USER_NOT_EXIST.getErrorCode(), USER_NOT_EXIST.getErrorMessage()},
+                // Request with missing query parameters → Query parameter validation failure
+                {X_TENANT_INFO, null,QUERY_PARAM_MISSING.getExpectedStatusCode(), QUERY_PARAM_MISSING.getErrorCode(), QUERY_PARAM_MISSING.getErrorMessage()},
         };
     }
 
     @DataProvider(name = "buyPriceDataScenarios")
     public Object[][] buyPriceData() {
 
-        return new Object[][] {
+        return new Object[][]{
 
-            // Invalid material code → Validation failure
-            {
-                "INVALID_CODE",
-                X_TENANT_INFO,
-                INVALID_MATERIAL_CODE.getExpectedStatusCode(),
-                MATERIAL_NOT_COMMISSIONED.getErrorCode(),
-                MATERIAL_NOT_COMMISSIONED.getErrorMessage(),
-                false
-            },
+                // Invalid material code → Validation failure
+                {"INVALID_CODE", X_TENANT_INFO, INVALID_MATERIAL_CODE.getExpectedStatusCode(), MATERIAL_NOT_COMMISSIONED.getErrorCode(), MATERIAL_NOT_COMMISSIONED.getErrorMessage()},
 
-            // Empty material code → Validation failure
-            {
-                "",
-                X_TENANT_INFO,
-                MATERIAL_NOT_COMMISSIONED.getExpectedStatusCode(),
-                MATERIAL_NOT_COMMISSIONED.getErrorCode(),
-                MATERIAL_NOT_COMMISSIONED.getErrorMessage(),
-                false
-            },
+                // Empty material code → Validation failure
+                {"", X_TENANT_INFO, MATERIAL_NOT_COMMISSIONED.getExpectedStatusCode(), MATERIAL_NOT_COMMISSIONED.getErrorCode(), MATERIAL_NOT_COMMISSIONED.getErrorMessage()},
 
             // Missing X-Tenant-Info → Access denied
             {
@@ -202,7 +113,6 @@ public class DigiGoldDataProvider {
                 ACCESS_DENIED.getExpectedStatusCode(),
                 ACCESS_DENIED.getErrorCode(),
                 ACCESS_DENIED.getErrorMessage(),
-                false
             },
 
             // Missing material code & tenant info → Validation failure
@@ -212,11 +122,10 @@ public class DigiGoldDataProvider {
                 ACCESS_DENIED.getExpectedStatusCode(),
                 ACCESS_DENIED.getErrorCode(),
                 ACCESS_DENIED.getErrorMessage(),
-                false
             },
 
             // Valid request → Success + DB validation
-            {MATERIAL_CODE, X_TENANT_INFO, 200, null, null, true},
+            {MATERIAL_CODE, X_TENANT_INFO, 200, null, null},
         };
     }
 
@@ -326,7 +235,7 @@ public class DigiGoldDataProvider {
                         rateId,
                         USER_ID,
                         BigDecimal.ZERO,
-                        new BigDecimal("10"),
+                        new BigDecimal("1000"),
                         MATERIAL_CODE,
                         "GoldBuyVerify-" + System.nanoTime(),
                         CALCULATION_TYPE_AMOUNT),
@@ -380,12 +289,9 @@ public class DigiGoldDataProvider {
                 ACCESS_DENIED
             },
 
-            /* ================= VALID SYNC CONFIRM ================= */
-            {
-                BuyConfirmRequest.buyConfirmPayload(USER_ID, validOrderId, MATERIAL_CODE, false),
-                X_TENANT_INFO,
-                null
-            },
+                /* ================= VALID SYNC CONFIRM ================= */
+                {BuyConfirmRequest.buyConfirmPayload(USER_ID, validOrderId, MATERIAL_CODE, true), X_TENANT_INFO,null},
+
         };
     }
 
@@ -414,6 +320,70 @@ public class DigiGoldDataProvider {
             {validOrderId, USER_ID, X_TENANT_INFO, null}
         };
     }
+    @DataProvider(name = "invoiceData")
+    public Object[][] invoiceData(ITestContext context) {
+
+        String validInvoiceId = (String) context.getAttribute("invoiceId");
+
+        return new Object[][]{
+
+                /* ================= MISSING INVOICE ID ================= */
+                {"", USER_ID, X_TENANT_INFO, QUERY_PARAM_MISSING.getErrorCode()},
+
+                /* ================= MISSING USER ID ================= */
+                {validInvoiceId, "", X_TENANT_INFO, USERID_REQUIRED.getErrorCode()},
+
+                /* ================= INVALID INVOICE ID ================= */
+                {"INVALID_INVOICE_ID", USER_ID, X_TENANT_INFO, QUERY_PARAM_MISSING.getErrorCode()},
+
+                /* ================= INVALID USER ID ================= */
+                {validInvoiceId, "INVALID_USER", X_TENANT_INFO, USER_NOT_EXIST.getErrorCode()},
+
+                /* ================= MISSING TENANT HEADER ================= */
+                {validInvoiceId, USER_ID, "", ACCESS_DENIED.getErrorCode()},
+
+                /* ================= ALL NULL ================= */
+                {null, null, X_TENANT_INFO, ACCESS_DENIED.getErrorCode()},
+
+                /* ================= VALID INVOICE FETCH ================= */
+                {validInvoiceId, USER_ID, X_TENANT_INFO, null}
+        };
+    }
+    @DataProvider(name = "deliveryOrderConfirmData")
+    public Object[][] deliveryOrderConfirmData(ITestContext context)
+    {
+        String orderId = (String) context.getAttribute("orderId");
+
+        return new Object[][]{
+
+                /* ================= MISSING ORDER ID ================= */
+                {DeliveryOrderConfirmRequest.createDeliveryOrderConfirm("", USER_ID, true), X_TENANT_INFO, QUERY_PARAM_MISSING},
+
+                /* ================= INVALID ORDER ID ================= */
+                {DeliveryOrderConfirmRequest.createDeliveryOrderConfirm("INVALID_ORDER", USER_ID, true), X_TENANT_INFO, ORDER_NOT_FOUND},
+
+                /* ================= VALID SYNC CONFIRM ================= */
+                {DeliveryOrderConfirmRequest.createDeliveryOrderConfirm(orderId, USER_ID, true), X_TENANT_INFO, null}
+        };
+    }
+    @DataProvider(name = "deliveryOrderFetchData")
+    public Object[][] deliveryOrderFetchData(ITestContext context)
+    {
+        String orderId = (String) context.getAttribute("orderId");
+
+        return new Object[][]{
+
+                /* ================= MISSING ORDER ID ================= */
+                {"", USER_ID, X_TENANT_INFO, QUERY_PARAM_MISSING},
+
+                /* ================= INVALID ORDER ID ================= */
+                {"INVALID_ORDER", USER_ID, X_TENANT_INFO, ORDER_NOT_FOUND},
+
+                /* ================= VALID ORDER DETAILS ================= */
+                {orderId, USER_ID, X_TENANT_INFO, null}
+        };
+    }
+
 
     @DataProvider(name = "sellPriceScenarios")
     public Object[][] sellPrice() {
@@ -540,7 +510,74 @@ public class DigiGoldDataProvider {
             }
         };
     }
+    @DataProvider(name = "deliveryOrderScenarios")
+    public Object[][]
+    deliveryOrderScenarios()
+    {
+        String merchantOrderId = CommonUtil.generateMerchantOrderId();
 
+        // Address object
+        DeliveryOrderRequest.Address address =
+                DeliveryOrderRequest.Address.builder()
+                        .address1(DigiGoldTestData.ADDRESS_LINE_1)
+                        .address2(DigiGoldTestData.ADDRESS_LINE_2)
+                        .city(DigiGoldTestData.CITY)
+                        .state(DigiGoldTestData.STATE)
+                        .pinCode(DigiGoldTestData.PIN_CODE)
+                        .country(DigiGoldTestData.COUNTRY)
+                        .build();
+
+        // Valid request
+        DeliveryOrderRequest validRequest =
+                DeliveryOrderRequest.createDeliveryOrder(
+                        USER_ID,
+                        merchantOrderId,
+                        DigiGoldTestData.SKU_ID_DELIVERY,
+                        DigiGoldTestData.VALID_QUANTITY,
+                        DigiGoldTestData.USER_FIRST_NAME + " " + DigiGoldTestData.USER_LAST_NAME,
+                        DigiGoldTestData.USER_PHONE_NUMBER,
+                        address
+                );
+
+        // Invalid quantity (0)
+        DeliveryOrderRequest invalidQuantityRequest =
+                DeliveryOrderRequest.createDeliveryOrder(
+                        USER_ID,
+                        merchantOrderId,
+                        DigiGoldTestData.SKU_ID_DELIVERY,
+                        "0",
+                        DigiGoldTestData.USER_FIRST_NAME + " " + DigiGoldTestData.USER_LAST_NAME,
+                        DigiGoldTestData.USER_PHONE_NUMBER,
+                        address
+                );
+
+        // Missing userId
+        DeliveryOrderRequest missingUserIdRequest =
+                DeliveryOrderRequest.createDeliveryOrder(
+                        "",
+                        merchantOrderId,
+                        DigiGoldTestData.SKU_ID_DELIVERY,
+                        DigiGoldTestData.VALID_QUANTITY,
+                        DigiGoldTestData.USER_FIRST_NAME + " " + DigiGoldTestData.USER_LAST_NAME,
+                        DigiGoldTestData.USER_PHONE_NUMBER,
+                        address
+                );
+
+        return new Object[][]
+                {
+                        // Missing userId
+                        { missingUserIdRequest, X_TENANT_INFO,USERID_REQUIRED},
+
+                        // Invalid quantity
+                        { invalidQuantityRequest, X_TENANT_INFO,INVALID_QUANTITY},
+
+                        // Missing tenant header
+                        { validRequest, "",ACCESS_DENIED},
+
+                        // Valid request
+                        { validRequest, X_TENANT_INFO, null },
+                };
+    }
     @DataProvider(name = "sellConfirmScenarios")
     public Object[][] sellConfirm(ITestContext context) {
         String orderId = (String) context.getAttribute("orderId");

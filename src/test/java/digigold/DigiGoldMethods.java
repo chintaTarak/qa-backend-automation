@@ -14,6 +14,8 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.jarApiAutomation.configuration.BaseUri;
 import org.jarApiAutomation.data.common.RestRequest;
+import org.jarApiAutomation.data.requestModel.digiGold.*;
+import org.jarApiAutomation.data.responseModel.digiGold.*;
 import org.jarApiAutomation.data.requestModel.digiGold.BuyConfirmRequest;
 import org.jarApiAutomation.data.requestModel.digiGold.BuyVerifyRequest;
 import org.jarApiAutomation.data.requestModel.digiGold.CreateUserRequest;
@@ -27,42 +29,37 @@ import org.jarApiAutomation.endpoints.DigiGoldEndpoints;
 import org.jarApiAutomation.utils.ApiRequests;
 import org.jarApiAutomation.utils.CommonSerializationUtil;
 
+
 @Slf4j
 public class DigiGoldMethods {
 
     private final ApiRequests apiRequests = new ApiRequests();
 
     public Response createUser(Map<String, String> headers, CreateUserRequest createUserReq) {
-        RestRequest req =
-                RestRequest.builder()
-                        .headers(headers)
-                        .url(getApiEndPoint(DIGIGOLD_BASE_URI, V1, DigiGoldEndpoints.CREATE_USER))
-                        .body(createUserReq)
-                        .build();
+        RestRequest req = RestRequest.builder()
+                .headers(headers)
+                .url(getApiEndPoint(DIGIGOLD_BASE_URI, V1, DigiGoldEndpoints.CREATE_USER))
+                .body(createUserReq)
+                .build();
         return apiRequests.post(req);
     }
 
-    public Response getUser(Map<String, String> headers, Map<String, Object> queryParams) {
-        RestRequest req =
-                RestRequest.builder()
-                        .headers(headers)
-                        .url(
-                                getApiEndPoint(
-                                        BaseUri.DIGIGOLD_BASE_URI,
-                                        BaseUri.V1,
-                                        DigiGoldEndpoints.GET_USERS))
-                        .queryParams(queryParams)
-                        .build();
-        return apiRequests.get(req);
+    public Response getUser(Map <String,String> headers,Map<String, Object> queryParams) {
+        RestRequest req = RestRequest.builder()
+                .headers(headers)
+                .url(getApiEndPoint(BaseUri.DIGIGOLD_BASE_URI, BaseUri.V1, DigiGoldEndpoints.GET_USERS))
+                .queryParams(queryParams)
+                .build();
+        return  apiRequests.get(req);
     }
 
-    public BuyPriceResponse buyPrice(Map<String, Object> queryParams, Map<String, String> headers) {
-        RestRequest req =
-                RestRequest.builder()
-                        .url(getApiEndPoint(DIGIGOLD_BASE_URI, V1, BUY_PRICE))
-                        .queryParams(queryParams)
-                        .headers(headers)
-                        .build();
+    public BuyPriceResponse buyPrice(Map<String, Object> queryParams, Map<String, String> headers)
+    {
+        RestRequest req = RestRequest.builder()
+                .url(getApiEndPoint(DIGIGOLD_BASE_URI,V1,BUY_PRICE))
+                .queryParams(queryParams)
+                .headers(headers)
+                .build();
         Response response = apiRequests.get(req);
         BuyPriceResponse deserializedResponse =
                 CommonSerializationUtil.readObject(
@@ -197,6 +194,60 @@ public class DigiGoldMethods {
                         response.getBody().asString(), SellStatusResponse.class);
         deserializedResponse.setStatusCode(response.getStatusCode());
         return deserializedResponse;
+    }
+    public InvoiceResponse invoiceDetails(Map<String, String> queryParams, Map<String, String> headers)
+    {
+        RestRequest req = RestRequest.builder()
+                .url(getApiEndPoint(DIGIGOLD_BASE_URI,V1,INVOICE))
+                .queryParams(queryParams)
+                .headers(headers)
+                .build();
+        Response response = apiRequests.get(req);
+        InvoiceResponse deserializedResponse = CommonSerializationUtil.readObject(response.getBody().asString(), InvoiceResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
+    }
+
+
+    public DeliveryOrderResponse deliveryOrder(Map <String,String> headers, DeliveryOrderRequest request)
+    {
+        RestRequest req = RestRequest.builder()
+                .url(getApiEndPoint(BaseUri.DIGIGOLD_BASE_URI, BaseUri.V1, DigiGoldEndpoints.DELIVERY_ORDER))
+                .headers(headers)
+                .body(request)
+                .build();
+        Response response = apiRequests.post(req);
+        DeliveryOrderResponse deserializedResponse = CommonSerializationUtil.readObject(response.getBody().asString(), DeliveryOrderResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
+    }
+
+
+    public DeliveryOrderConfirmResponse deliveryOrderConfirm(Map<String, String> headers, DeliveryOrderConfirmRequest request)
+    {
+        RestRequest req = RestRequest.builder()
+                .url(getApiEndPoint(BaseUri.DIGIGOLD_BASE_URI, BaseUri.V1, DigiGoldEndpoints.DELIVERY_ORDER_CONFIRM))
+                .headers(headers)
+                .body(request)
+                .build();
+        Response response = apiRequests.post(req);
+        DeliveryOrderConfirmResponse deserializedResponse = CommonSerializationUtil.readObject(response.getBody().asString(), DeliveryOrderConfirmResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
+    }
+
+    public DeliveryOrderResponse getOrderDeliveryDetails(Map<String, String> headers, Map<String, String> queryParams)
+    {
+        RestRequest req = RestRequest.builder()
+                .url(getApiEndPoint(DIGIGOLD_BASE_URI,V1,DELIVERY_ORDER))
+                .queryParams(queryParams)
+                .headers(headers)
+                .build();
+        Response response = apiRequests.get(req);
+        DeliveryOrderResponse deserializedResponse = CommonSerializationUtil.readObject(response.getBody().asString(), DeliveryOrderResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
+
     }
 
     public JsonNode getAllProduct(Map<String, String> headers, Map<String, String> queryParam) {
