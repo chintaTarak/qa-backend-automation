@@ -1,13 +1,19 @@
 package org.jarApiAutomation.dbConfiguration;
 
+import java.math.BigDecimal;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class PostgresUtils {
     private final String url;
     private final String user;
-    private final String pass;
+    private final String pass;;
     private volatile Connection connection;
 
     /**
@@ -66,6 +72,34 @@ public class PostgresUtils {
             throw new RuntimeException("DB query failed", e);
         }
     }
+    public List<Map<String, Object>> queryForListMulti(String quer, Object... params) {
+        List<Map<String, Object>> results = new ArrayList<>();
+        try (PreparedStatement ps = getConnection().prepareStatement(quer)) {
+            for (int i = 0; i < params.length; i++) {
+                ps.setObject(i + 1, params[i]);
+            }
+
+            try (ResultSet rs = ps.executeQuery()) {
+                ResultSetMetaData meta = rs.getMetaData();
+                int colCount = meta.getColumnCount();
+
+                while (rs.next()) {
+                    Map<String, Object> row = new HashMap<>();
+                    for (int i = 1; i <= colCount; i++) {
+                        row.put(meta.getColumnLabel(i), rs.getObject(i));
+                    }
+                    results.add(row);
+                }
+            }
+        } catch (SQLException e) {
+            log.error("Error executing query: {}", quer, e);
+            throw new RuntimeException("DB query failed", e);
+        }
+
+       log.info("Query returned rows: " + results.size());
+        return results;
+    }
+
 
     /** Closes the database connection if it is open. */
     public void disconnect() {

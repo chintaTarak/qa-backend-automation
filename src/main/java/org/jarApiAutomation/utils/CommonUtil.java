@@ -6,20 +6,24 @@ import java.util.Map;
 import lombok.extern.slf4j.Slf4j;
 import org.bson.Document;
 import org.bson.types.ObjectId;
+import java.text.MessageFormat;
+import java.util.UUID;
+import java.util.HashMap;
+import java.util.Map;
 
 @Slf4j
 public class CommonUtil {
 
     public static void executeShellCmd(String shellCmd) {
         try {
-            Process process = Runtime.getRuntime().exec(new String[] {"/bin/sh", "-c", shellCmd});
+            Process process = Runtime.getRuntime().exec(new String[]{"/bin/sh", "-c", shellCmd});
             process.waitFor();
         } catch (Exception e) {
             log.error("Error executing command: {}", shellCmd, e);
         }
     }
 
-    public static String getApiEndPoint(String baseUri, String version, String endpoint) {
+    public static String getApiEndPoint(String baseUri, String version, String endpoint){
         return MessageFormat.format("{0}{1}{2}", baseUri, version, endpoint);
     }
 
@@ -56,4 +60,9 @@ public class CommonUtil {
         }
         return params.isEmpty() ? null : params;
     }
+    public static String generateMerchantOrderId() {
+
+        return "MO-" + UUID.randomUUID();
+    }
+
 }

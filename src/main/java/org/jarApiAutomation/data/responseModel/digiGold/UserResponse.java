@@ -1,6 +1,9 @@
 package org.jarApiAutomation.data.responseModel.digiGold;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
+import java.util.List;
+
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
@@ -18,6 +21,13 @@ public class UserResponse extends CommonResultModel {
         private String phoneNumber;
         private String countryCode;
         private String userRefId;
-        private ArrayList<Object> currentBalance;
+        private List<CurrentBalance> currentBalance;
     }
+    @Data
+    public static class CurrentBalance
+    {
+        private String materialCode;
+        private BigDecimal quantity;
+    }
+
 }

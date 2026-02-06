@@ -1,6 +1,6 @@
 package activation.manualBuyGold;
 
-import static changejar.authService.AuthServiceTest.accessToken;
+
 import static org.jarApiAutomation.configuration.BaseUri.*;
 import static org.jarApiAutomation.endpoints.BuyGoldEndPoints.*;
 import static org.jarApiAutomation.utils.CommonUtil.getApiEndPoint;
