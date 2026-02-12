@@ -6,6 +6,7 @@ import org.jarApiAutomation.data.common.RestRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.AutoPayInitiateRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
+import org.jarApiAutomation.data.responseModel.digiGold.BuyPriceResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.AutoPayInitiateResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
@@ -16,6 +17,8 @@ import org.jarApiAutomation.utils.CommonSerializationUtil;
 
 import java.util.Map;
 
+import static org.jarApiAutomation.configuration.BaseUri.*;
+import static org.jarApiAutomation.endpoints.GoldSDKEndPoints.*;
 import static org.jarApiAutomation.utils.CommonUtil.getApiEndPoint;
 
 public class GoldSDKMethods {
@@ -65,7 +68,7 @@ public class GoldSDKMethods {
                         .headers(headers)
                         .url(
                                 getApiEndPoint(
-                                        BaseUri.GOLD_BASE_AUTH_URI,
+                                        GOLD_BASE_AUTH_URI,
                                         BaseUri.V1,
                                         GoldSDKEndPoints.USERS))
                         .queryParams(queryParams)
@@ -106,7 +109,7 @@ public class GoldSDKMethods {
                 RestRequest.builder()
                         .url(
                                 getApiEndPoint(
-                                        BaseUri.GOLD_BASE_AUTH_URI,
+                                        GOLD_BASE_AUTH_URI,
                                         BaseUri.V1,
                                         GoldSDKEndPoints.INITIATE_AUTOPAY))
                         .body(autoPayInitiateRequest).headers(headers)
@@ -116,4 +119,20 @@ public class GoldSDKMethods {
         deserializedResponse.setStatusCode(response.getStatusCode());
         return deserializedResponse;
     }
+
+    public BuyPriceResponse sdkBuyPrice(Map<String, String> headers) {
+
+        RestRequest req =
+                RestRequest.builder()
+                        .url(getApiEndPoint(GOLD_BASE_AUTH_URI,V1 ,SDK_BUY_PRICE))
+                        .headers(headers)
+                        .build();
+        Response response = apiRequests.get(req);
+        BuyPriceResponse deserializedResponse =
+                CommonSerializationUtil.readObject(
+                        response.getBody().asString(), BuyPriceResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
+    }
+
 }
