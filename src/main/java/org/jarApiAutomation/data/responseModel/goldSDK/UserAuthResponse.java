@@ -13,6 +13,7 @@ public class UserAuthResponse extends CommonResultModel {
     private DataObj data;
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DataObj {
         private String accessToken;
         private String refreshToken;

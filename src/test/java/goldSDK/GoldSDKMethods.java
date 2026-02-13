@@ -8,6 +8,7 @@ import org.jarApiAutomation.data.requestModel.goldSDK.BaseKycRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.BaseKycRequest;
 import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
+import org.jarApiAutomation.data.responseModel.digiGold.BuyPriceResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.AutoPayInitiateResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
 import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
@@ -21,6 +22,8 @@ import java.io.File;
 import java.util.Map;
 
 import static io.restassured.RestAssured.given;
+import static org.jarApiAutomation.configuration.BaseUri.*;
+import static org.jarApiAutomation.endpoints.GoldSDKEndPoints.*;
 import static org.jarApiAutomation.utils.CommonUtil.getApiEndPoint;
 
 public class GoldSDKMethods {
@@ -121,6 +124,22 @@ public class GoldSDKMethods {
         deserializedResponse.setStatusCode(response.getStatusCode());
         return deserializedResponse;
     }
+
+    public BuyPriceResponse sdkBuyPrice(Map<String, String> headers) {
+
+        RestRequest req =
+                RestRequest.builder()
+                        .url(getApiEndPoint(GOLD_BASE_AUTH_URI,V1 ,SDK_BUY_PRICE))
+                        .headers(headers)
+                        .build();
+        Response response = apiRequests.get(req);
+        BuyPriceResponse deserializedResponse =
+                CommonSerializationUtil.readObject(
+                        response.getBody().asString(), BuyPriceResponse.class);
+        deserializedResponse.setStatusCode(response.getStatusCode());
+        return deserializedResponse;
+    }
+
 
     public  UploadResponse upload(Map<String, String> headers) {
         RestRequest request = RestRequest.builder()

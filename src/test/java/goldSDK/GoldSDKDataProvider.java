@@ -23,6 +23,7 @@ public class GoldSDKDataProvider {
         BAD_REQUEST("50003", "User id or phone number is required", 400),
         EMPTY_REF_ID_BAD_REQUEST("50003", "Field userRefId should be present.", 400),
         USER_AUTH_BAD_REQUEST("50001", "Required query parameter userId is not present", 400),
+        DOES_NOT_HAVE_EXISTS("403", "Authentication failed", 403),
         EMPTY_REFRSHTOKEN_BAD_REQUEST("50003", "Field refreshToken should be present.", 400),
         EMPTY_ACCESSTOKEN_BAD_REQUEST("50003", "Field accessToken should be present", 400),
         EMPTY_TOKEN_BAD_REQUEST("50003", "Field accessToken should be present., Field refreshToken should be present.", 400);
@@ -130,6 +131,18 @@ public class GoldSDKDataProvider {
                 {initiateAutoPayRequest(GoldSDKTest.frequency,MANDATE_AMOUNT,MAX_MANDATE_AMOUNT,PACKAGE_NAME),Map.of("Authorization","Bearer "+ GoldSDKTest.accessToken),null},
         };
     }
+    @DataProvider(name = "getBuyPriceSDKScenarios")
+    public Object[][] getBuyPriceSDKScenarios() {
+        return new Object[][]
+                {
+                        {null, ExpectedError.UNAUTHORIZE},
+                        {"", ExpectedError.UNAUTHORIZE},
+                        {INVALID_ACCESS_TOKEN, ExpectedError.DOES_NOT_HAVE_EXISTS},
+                        {GoldSDKTest.accessToken, null}
+               };
+    }
+
+
 
     @DataProvider(name = "uploadDocTypes")
     public Object[][] uploadDocTypes() {

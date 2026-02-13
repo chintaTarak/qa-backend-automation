@@ -14,6 +14,7 @@ public class CreateUserResponse extends CommonResultModel {
     private DataObj data;
 
     @Data
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static class DataObj {
         private String id;
         private String name;

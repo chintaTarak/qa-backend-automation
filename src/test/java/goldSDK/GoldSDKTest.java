@@ -5,6 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.jarApiAutomation.data.requestModel.goldSDK.*;
 import org.jarApiAutomation.data.requestModel.goldSDK.BaseKycRequest;
 import org.jarApiAutomation.data.responseModel.goldSDK.*;
+import org.apache.http.HttpStatus;
+import org.jarApiAutomation.data.requestModel.goldSDK.AutoPayInitiateRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.CreateUserRequest;
+import org.jarApiAutomation.data.requestModel.goldSDK.RefreshTokenRequest;
+import org.jarApiAutomation.data.responseModel.digiGold.BuyPriceResponse;
+import org.jarApiAutomation.data.responseModel.goldSDK.AutoPayInitiateResponse;
+import org.jarApiAutomation.data.responseModel.goldSDK.CreateUserResponse;
+import org.jarApiAutomation.data.responseModel.goldSDK.GetUserResponse;
+import org.jarApiAutomation.data.responseModel.goldSDK.UserAuthResponse;
+import org.testng.ITestContext;
 import org.testng.annotations.*;
 import org.testng.asserts.SoftAssert;
 
@@ -12,6 +22,7 @@ import java.io.File;
 import java.net.URL;
 import java.nio.file.Paths;
 import java.util.HashMap;
+import java.math.BigDecimal;
 import java.util.Map;
 
 /**
@@ -31,6 +42,8 @@ public class GoldSDKTest extends BaseTest {
     private static Map<String, String> presignedUrlMap = new HashMap<>();
     private static Map<String, String> documentImageIdMap = new HashMap<>();
 
+    public String rateId;
+    public BigDecimal assetPrice;
 
     @BeforeMethod
     public void setup() {
@@ -149,6 +162,7 @@ public class GoldSDKTest extends BaseTest {
         }
     }
 
+
     @Test(
             description = "Initiate Auto Pay and validate response",
             dataProvider = "initiateAutoPay",
@@ -266,4 +280,36 @@ public class GoldSDKTest extends BaseTest {
             goldSDKValidation.assertAll();
         }
     }
+    /**
+     * Fetch  buy price for SDK . Depends on successful authentication.
+     */
+
+    @Test(description = "Fetch Gold SDK buy Price",dataProvider = "getBuyPriceSDKScenarios",dataProviderClass = GoldSDKDataProvider.class,priority = 5)
+    public void fetchSDKBuyGoldPrice(String accessToken, GoldSDKDataProvider.ExpectedError expectedError, ITestContext context)
+    {
+        try
+        {
+            Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(accessToken) ? null
+                            : Map.of("Authorization", "Bearer "+ accessToken);
+            BuyPriceResponse buyPriceSDKResponse= goldSDKMethods.sdkBuyPrice(headers);
+            if (buyPriceSDKResponse.getData()!=null )
+            {
+                String rateId = buyPriceSDKResponse.getData().getId();
+                assetPrice = buyPriceSDKResponse.getData().getAssetPrice();
+                context.setAttribute("rateId", rateId);
+            }
+            goldSDKValidation.assertSDKBuyPrice(buyPriceSDKResponse,expectedError);
+
+        }
+        catch (Exception e)
+        {
+            log.error("Exception while fetching user details", e);
+            softAssert.fail("Get User test failed: " + e.getMessage());
+        }
+        finally
+        {
+            goldSDKValidation.assertAll();
+        }
+    }
+
 }
