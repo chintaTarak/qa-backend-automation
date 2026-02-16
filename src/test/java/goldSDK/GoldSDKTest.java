@@ -188,13 +188,14 @@ public class GoldSDKTest extends BaseTest {
      * Used later for file upload and KYC initiation.
      */
     @Test(priority = 6, description = "Upload document and get presigned URL", dataProvider = "uploadDocTypes", dataProviderClass = GoldSDKDataProvider.class)
-    public void uploadDocument(String docType) {
-        Map<String, String> headers = Map.of("Authorization", accessToken);
+    public void uploadDocument(String accessToken, String kycDocType) {
+        Map<String, String> headers =
+                accessToken == null ? null : Map.of("Authorization", accessToken);
         UploadResponse response = goldSDKMethods.upload(headers);
         goldSDKValidation.validateUpload(response);
         // store separately
-        presignedUrlMap.put(docType, response.getData().getPreSignedUrlPath());
-        documentImageIdMap.put(docType, response.getData().getDocumentImageId());
+        presignedUrlMap.put(kycDocType, response.getData().getPreSignedUrlPath());
+        documentImageIdMap.put(kycDocType, response.getData().getDocumentImageId());
     }
 
     /**
@@ -205,14 +206,14 @@ public class GoldSDKTest extends BaseTest {
      */
 
     @Test(priority = 7, description = "Upload file using presigned URL", dataProvider = "uploadDocTypes", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadDocument")
-    public void uploadFile(String docType) throws Exception {
-        String fileName = docType.equals("PAN") ? "testData/PanCard.jpeg" : "testData/AadhaarCard.jpeg";
+    public void uploadFile(String accessToken, String kycDocType) throws Exception {
+        String fileName = kycDocType.equals("PAN") ? "testData/PanCard.jpeg" : "testData/AadhaarCard.jpeg";
         URL resource = getClass().getClassLoader().getResource(fileName);
         if (resource == null) {
             throw new RuntimeException("File not found: " + fileName);
         }
         File imageFile = Paths.get(resource.toURI()).toFile();
-        int statusCode = goldSDKMethods.uploadFile(presignedUrlMap.get(docType), imageFile, "image/jpeg");
+        int statusCode = goldSDKMethods.uploadFile(presignedUrlMap.get(kycDocType), imageFile, "image/jpeg");
         goldSDKValidation.validateUploadFile(statusCode);
     }
 
@@ -223,31 +224,27 @@ public class GoldSDKTest extends BaseTest {
      * Depends on successful file upload.
      */
     @Test(priority = 8, description = "Initiate KYC", dataProvider = "initiateKycScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadFile")
-    public void initiateKyc(BaseKycRequest request, GoldSDKDataProvider.ExpectedError expectedError) {
+    public void initiateKyc(BaseKycRequest request, String accessToken, GoldSDKDataProvider.ExpectedError expectedError) {
         String imageId;
-        String docType;
+        String kycDocType;
         InitiateKycResponse response;
-        Map<String, String> headers = Map.of("Authorization", accessToken);
         try {
-            if (accessToken == null) {
-                softAssert.fail("Access token is null");
-                return;
-            }
+            Map<String, String> headers = accessToken == null ? null : Map.of("Authorization", accessToken);
             // -------- PAN FLOW --------
             if (request instanceof InitiatePanKycRequest panReq) {
-                docType = panReq.getPanVerificationDoc().getKycDocType();
-                imageId = documentImageIdMap.get(docType);
+                kycDocType = panReq.getPanVerificationDoc().getKycDocType();
+                imageId = documentImageIdMap.get(kycDocType);
                 panReq.getPanVerificationDoc().setDocFrontImageId(imageId);
                 response = goldSDKMethods.initiateKyc(headers, panReq);
-                goldSDKValidation.validateInitiateKyc(response, docType, expectedError);
+                goldSDKValidation.validateInitiateKyc(response, kycDocType, expectedError);
             }
             // -------- AADHAAR FLOW --------
             else if (request instanceof InitiateAadhaarKycRequest aadhaarReq) {
-                docType = aadhaarReq.getKycVerificationDoc().getKycDocType();
-                imageId = documentImageIdMap.get(docType);
+                kycDocType = aadhaarReq.getKycVerificationDoc().getKycDocType();
+                imageId = documentImageIdMap.get(kycDocType);
                 aadhaarReq.getKycVerificationDoc().setDocFrontImageId(imageId);
                 response = goldSDKMethods.initiateKyc(headers, aadhaarReq);
-                goldSDKValidation.validateInitiateKyc(response, docType, expectedError);
+                goldSDKValidation.validateInitiateKyc(response, kycDocType, expectedError);
             }
         } catch (Exception e) {
             log.error("Exception while initiating KYC", e);
@@ -264,15 +261,11 @@ public class GoldSDKTest extends BaseTest {
      * Depends on successful KYC initiation.
      */
     @Test(priority = 10, description = "Fetch KYC status", dataProvider = "kycStatusScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "initiateKyc")
-    public void getKycStatus(String docType, GoldSDKDataProvider.ExpectedError expectedError) {
-        Map<String, String> headers = Map.of("Authorization", accessToken);
+    public void getKycStatus(String accessToken, String kycDocType, GoldSDKDataProvider.ExpectedError expectedError) {
         try {
-            if (accessToken == null) {
-                softAssert.fail("Access token is null. Authentication might have failed.");
-                return;
-            }
+            Map<String, String> headers = accessToken == null ? null : Map.of("Authorization", accessToken);
             KycStatusResponse response = goldSDKMethods.getKycStatus(headers);
-            goldSDKValidation.validateKycStatus(response, docType, expectedError);
+            goldSDKValidation.validateKycStatus(response, kycDocType, expectedError);
         } catch (Exception e) {
             log.error("Exception while fetching KYC status", e);
             softAssert.fail("KYC Status test failed: " + e.getMessage());
@@ -290,7 +283,7 @@ public class GoldSDKTest extends BaseTest {
         try
         {
             Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(accessToken) ? null
-                            : Map.of("Authorization", "Bearer "+ accessToken);
+                            : Map.of("Authorization", accessToken);
             BuyPriceResponse buyPriceSDKResponse= goldSDKMethods.sdkBuyPrice(headers);
             if (buyPriceSDKResponse.getData()!=null )
             {
@@ -299,7 +292,6 @@ public class GoldSDKTest extends BaseTest {
                 context.setAttribute("rateId", rateId);
             }
             goldSDKValidation.assertSDKBuyPrice(buyPriceSDKResponse,expectedError);
-
         }
         catch (Exception e)
         {

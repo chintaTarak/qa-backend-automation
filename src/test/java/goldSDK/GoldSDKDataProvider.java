@@ -26,7 +26,7 @@ public class GoldSDKDataProvider {
         DOES_NOT_HAVE_EXISTS("403", "Authentication failed", 403),
         EMPTY_REFRSHTOKEN_BAD_REQUEST("50003", "Field refreshToken should be present.", 400),
         EMPTY_ACCESSTOKEN_BAD_REQUEST("50003", "Field accessToken should be present", 400),
-        EMPTY_TOKEN_BAD_REQUEST("50003", "Field accessToken should be present., Field refreshToken should be present.", 400);
+        EMPTY_TOKEN_BAD_REQUEST("50003", "Field refreshToken should be present., Field accessToken should be present.", 400);
 
         private final String errorCode;
         private final String errorMessage;
@@ -147,8 +147,8 @@ public class GoldSDKDataProvider {
     @DataProvider(name = "uploadDocTypes")
     public Object[][] uploadDocTypes() {
         return new Object[][]{
-                {"PAN"},
-                {"AADHAAR"}
+                {GoldSDKTest.accessToken,"PAN"},
+                {GoldSDKTest.accessToken,"AADHAAR"}
         };
     }
     @DataProvider(name = "initiateKycScenarios")
@@ -167,6 +167,7 @@ public class GoldSDKDataProvider {
                                         DOB
                                 )
                         ),
+                        GoldSDKTest.accessToken,
                         null
                 },
                 // -------- AADHAAR FLOW --------
@@ -182,6 +183,7 @@ public class GoldSDKDataProvider {
                                         DOB
                                 )
                         ),
+                        GoldSDKTest.accessToken,
                         null
                 }
         };
@@ -190,8 +192,8 @@ public class GoldSDKDataProvider {
     @DataProvider(name = "kycStatusScenarios")
     public Object[][] kycStatusScenarios() {
         return new Object[][]{
-                {"PAN", null},
-                {"AADHAAR", null}
+                {GoldSDKTest.accessToken,"PAN", null},
+                {GoldSDKTest.accessToken,"AADHAAR", null}
         };
     }
 }

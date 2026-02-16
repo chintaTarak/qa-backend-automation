@@ -133,9 +133,6 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-     // commented out as the API response is inconsistent (returns true/false intermittently)
-//            softAssert.assertFalse(
-//                    response.isSuccess(), "success should be false for error scenario");
             assertFieldsEquals(
                     response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
             String actualErrorMsg =
@@ -163,9 +160,6 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-            // commented out as the API response is inconsistent (returns true/false intermittently)
-//            softAssert.assertFalse(
-//                    response.isSuccess(), "success should be false for error scenario");
             assertFieldsEquals(
                     response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
             String actualErrorMsg =
@@ -193,8 +187,6 @@ public class GoldSDKValidation extends ApiAssertions {
         assertFieldsEquals(response.getStatusCode(), expectedStatusCode, "Status code");
         // ERROR FLOW
         if (expectedStatusCode != 200) {
-            // commented out as the API response is inconsistent (returns true/false intermittently)
-//            assertFieldFalse(response.isSuccess(), "success", "Expected success=false for error scenario");
             assertFieldsEquals(
                     response.getErrorCode(), expectedError.getErrorCode(), "Error code mismatch");
             String actualErrorMsg =
@@ -265,8 +257,6 @@ public class GoldSDKValidation extends ApiAssertions {
             validateAutoPayInitiateInDB(data);
             return;
         }
-
-        //need to implement negative flow validations
     }
 
     private void validateAutoPayInitiateInDB(AutoPayInitiateResponse.DataObj data) {
@@ -407,33 +397,66 @@ public class GoldSDKValidation extends ApiAssertions {
         List<KycStatusResponse.KycDocumentDetails> docs = data.getKycDocumentDetails();
         assertFieldNotNull(docs, "kycDocumentDetails");
         assertFieldTrue(docs.size() > 0, "kycDocumentDetails", "No KYC documents found");
+        KycStatusResponse.KycDocumentDetails matchedDoc = null;
         for (KycStatusResponse.KycDocumentDetails doc : docs) {
-            assertFieldNotNull(doc.getName(), "name");
-            assertFieldNotNull(doc.getKycDocType(), "kycDocType");
-            assertFieldNotNull(doc.getVerificationStatus(), "verificationStatus");
-            assertFieldTrue(doc.getDocNumber() == null || doc.getDocNumber().contains("*"), "docNumber", "Doc number should be masked");
-            // ---- INLINE DB WAIT ----
-            // KYC verification is asynchronous. After Initiate API returns PENDING,
-            // the DB status takes a few seconds to update (VERIFIED / FAILED).
-            // Hence we poll the DB with limited retries instead of a fixed sleep
-            // to avoid flaky tests and ensure we validate the final verification status.
-            String finalStatus = "PENDING";
-            int retry = 0;
-            while ("PENDING".equalsIgnoreCase(finalStatus) && retry < 5) {
-                Document dbDoc = tenantMongo().fetchData(
-                        TENANTS_DB,
-                        TENANT_KYC_COLLECTION,
-                        "userId",
-                        data.getUserId(),
-                        "createdAt"
-                );
-                finalStatus = getValueFromDocument(dbDoc, "verificationStatus");
-                if (!"PENDING".equalsIgnoreCase(finalStatus)) break;
-                Thread.sleep(2000);
-                retry++;
-            }
-            assertFieldsEquals(finalStatus, "VERIFIED", "verificationStatus");
+            if (docType.equalsIgnoreCase(doc.getKycDocType())) {
+                matchedDoc = doc;
+                break;
             }
         }
+        assertFieldNotNull(matchedDoc, "Matched KYC Document not found for " + docType);
+         // Now validate ONLY the matched doc
+        assertFieldNotNull(matchedDoc.getName(), "name");
+        assertFieldNotNull(matchedDoc.getKycDocType(), "kycDocType");
+        assertFieldsEquals(matchedDoc.getKycDocType(), docType, "kycDocType mismatch");
+        assertFieldNotNull(matchedDoc.getVerificationStatus(), "verificationStatus");
+        assertFieldTrue(
+                matchedDoc.getDocNumber() == null || matchedDoc.getDocNumber().contains("*"),
+                "docNumber",
+                "Doc number should be masked"
+        );
+        validateFinalKycStatusFromDB(data.getUserId(), "VERIFIED");
+        validateTenantUserKycFlags(data.getUserId());
         }
+    private void validateFinalKycStatusFromDB(String userId, String expectedStatus) throws InterruptedException {
+        /*
+         * KYC verification is asynchronous.
+         * After Initiate API returns PENDING, the DB status takes a few seconds
+         * to update to VERIFIED / FAILED.
+         * We poll the DB with limited retries instead of using a fixed sleep
+         * to avoid flaky tests and to validate the final verification status reliably.
+         */
+        String finalStatus = "PENDING";
+        for (int retry = 0; retry < 5; retry++) {
+            Document dbDoc = tenantMongo().fetchData(
+                    TENANTS_DB,
+                    TENANT_KYC_COLLECTION,
+                    "userId",
+                    userId,
+                    "createdAt"
+            );
+            finalStatus = getValueFromDocument(dbDoc, "verificationStatus");
+            // STOP IMMEDIATELY if not pending
+            if (!"PENDING".equalsIgnoreCase(finalStatus)) {
+                break;
+            }
+            Thread.sleep(2000);
+        }
+        assertFieldsEquals(finalStatus, expectedStatus, "verificationStatus");
+    }
+    public void validateTenantUserKycFlags(String userId) {
+        Document doc = tenantMongo().fetchData(
+                TENANTS_DB,
+                TENANT_USERS_COLLECTION,
+                "_id",
+                userId,
+                "_id"
+        );
+        assertFieldNotNull(doc, "tenantUserDocument");
+        Boolean isKycDone = doc.getBoolean("isKycDone");
+        Boolean isUserKycDone = doc.getBoolean("isUserKycDone");
+        assertFieldTrue(isKycDone, "isKycDone", "Tenant user KYC flag");
+        assertFieldTrue(isUserKycDone, "isUserKycDone", "Tenant user KYC flag");
+    }
+}
 
