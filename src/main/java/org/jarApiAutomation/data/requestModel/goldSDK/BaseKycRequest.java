@@ -1,4 +1,7 @@
 package org.jarApiAutomation.data.requestModel.goldSDK;
 
-public interface BaseKycRequest {
+public interface BaseKycRequest
+{
+    String getPhoneNumber();
+    String getCountryCode();
 }

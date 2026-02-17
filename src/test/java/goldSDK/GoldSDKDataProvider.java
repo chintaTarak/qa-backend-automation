@@ -147,13 +147,37 @@ public class GoldSDKDataProvider {
     @DataProvider(name = "uploadDocTypes")
     public Object[][] uploadDocTypes() {
         return new Object[][]{
-                {GoldSDKTest.accessToken,"PAN"},
-                {GoldSDKTest.accessToken,"AADHAAR"}
+                {GoldSDKTest.accessToken,"AADHAAR"},
+                {GoldSDKTest.accessToken,"PAN"}
+        };
+    }
+    @DataProvider(name = "uploadDocFile")
+    public Object[][] uploadDocFile() {
+        return new Object[][]{
+                {"AADHAAR"},
+                {"PAN"}
         };
     }
     @DataProvider(name = "initiateKycScenarios")
     public Object[][] initiateKycScenarios() {
         return new Object[][]{
+
+                // -------- AADHAAR FLOW --------
+                {
+                        new InitiateAadhaarKycRequest(
+                                USER_PHONE_NUMBER,
+                                USER_COUNTRY_CODE,
+                                new InitiateAadhaarKycRequest.kycVerificationDoc(
+                                        KYC_AADHAAR_DOC_TYPE,
+                                        KYC_DOC_NUMBER,
+                                        null,
+                                        FULL_NAME,
+                                        DOB
+                                )
+                        ),
+                        GoldSDKTest.accessToken,
+                        null
+                },
                 // -------- PAN FLOW --------
                 {
                         new InitiatePanKycRequest(
@@ -170,30 +194,14 @@ public class GoldSDKDataProvider {
                         GoldSDKTest.accessToken,
                         null
                 },
-                // -------- AADHAAR FLOW --------
-                {
-                        new InitiateAadhaarKycRequest(
-                                USER_PHONE_NUMBER,
-                                USER_COUNTRY_CODE,
-                                new InitiateAadhaarKycRequest.kycVerificationDoc(
-                                        KYC_AADHAAR_DOC_TYPE,
-                                        KYC_DOC_NUMBER,
-                                        null,
-                                        FULL_NAME,
-                                        DOB
-                                )
-                        ),
-                        GoldSDKTest.accessToken,
-                        null
-                }
         };
     }
 
     @DataProvider(name = "kycStatusScenarios")
     public Object[][] kycStatusScenarios() {
         return new Object[][]{
-                {GoldSDKTest.accessToken,"PAN", null},
-                {GoldSDKTest.accessToken,"AADHAAR", null}
+                {GoldSDKTest.accessToken,"AADHAAR", null},
+                {GoldSDKTest.accessToken,"PAN", null}
         };
     }
 }

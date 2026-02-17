@@ -41,7 +41,13 @@ public class DeliveryOrderResponse extends CommonResultModel
         private String logisticPartner;
         private String trackingLink;
         private String awbId;
-        private String trackingStatus;
+        private List<TrackingStatus> trackingStatus;
+    }
+    @Data
+    public static class TrackingStatus
+    {
+        private String deliveryStatus;
+        private String updatedAt;
     }
 
     @Data

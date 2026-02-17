@@ -10,7 +10,6 @@ public class GoldSDKTestData {
     public static final String USER_ID = "693bee05cca5cf8ea8e1c9e5";
     public static final String INVALID_USER_ID = "693bee05cca5cf8ea8e1c9";
     public static final String TENANT_ID = "67864bb82164c866c4227627";
-    public static final String USER_REF_ID = "TEST-USER-Toufiq-596";
     public static final String EMPTY_USER_REF_ID = "";
     public static final String X_API_USER =
             "67864bb82164c866c4227627:5fed5db9db9e4de58a800abc4e5b2cfc";
