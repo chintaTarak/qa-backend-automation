@@ -151,8 +151,8 @@ public class GoldSDKDataProvider {
                 {GoldSDKTest.accessToken,"PAN"}
         };
     }
-    @DataProvider(name = "uploadDocFile")
-    public Object[][] uploadDocFile() {
+    @DataProvider(name = "uploadKycFiles")
+    public Object[][] uploadKycFiles() {
         return new Object[][]{
                 {"AADHAAR"},
                 {"PAN"}
@@ -161,7 +161,6 @@ public class GoldSDKDataProvider {
     @DataProvider(name = "initiateKycScenarios")
     public Object[][] initiateKycScenarios() {
         return new Object[][]{
-
                 // -------- AADHAAR FLOW --------
                 {
                         new InitiateAadhaarKycRequest(
@@ -193,7 +192,7 @@ public class GoldSDKDataProvider {
                         ),
                         GoldSDKTest.accessToken,
                         null
-                },
+                }
         };
     }
 

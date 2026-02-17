@@ -188,7 +188,7 @@ public class GoldSDKTest extends BaseTest {
      * Used later for file upload and KYC initiation.
      */
     @Test(priority = 6, description = "Upload document and get presigned URL", dataProvider = "uploadDocTypes", dataProviderClass = GoldSDKDataProvider.class)
-    public void uploadKYCDoc(String accessToken, String kycDocType) {
+    public void uploadKycDocument(String accessToken, String kycDocType) {
         Map<String, String> headers =
                 accessToken == null ? null : Map.of("Authorization", accessToken);
         UploadResponse response = goldSDKMethods.upload(headers);
@@ -205,8 +205,8 @@ public class GoldSDKTest extends BaseTest {
      * Depends on uploadDocument execution.
      */
 
-    @Test(priority = 7, description = "Upload file using presigned URL", dataProvider = "uploadDocFile", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadKYCDoc")
-    public void S3FileUploader( String kycDocType) throws Exception {
+    @Test(priority = 7, description = "Upload file using presigned URL", dataProvider = "uploadKycFiles", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadKycDocument")
+    public void S3FileUploader(String kycDocType) throws Exception {
         String fileName = kycDocType.equals("PAN") ? "testData/PanCard.jpeg" : "testData/AadhaarCard.jpeg";
         URL resource = getClass().getClassLoader().getResource(fileName);
         if (resource == null) {
@@ -277,13 +277,13 @@ public class GoldSDKTest extends BaseTest {
      * Fetch  buy price for SDK . Depends on successful authentication.
      */
 
-    @Test(description = "Fetch Gold SDK buy Price",dataProvider = "getBuyPriceSDKScenarios",dataProviderClass = GoldSDKDataProvider.class,priority = 5)
+    @Test(priority = 10, description = "Fetch Gold SDK buy Price",dataProvider = "getBuyPriceSDKScenarios",dataProviderClass = GoldSDKDataProvider.class)
     public void fetchSDKBuyGoldPrice(String accessToken, GoldSDKDataProvider.ExpectedError expectedError, ITestContext context)
     {
         try
         {
             Map<String, String> headers = "Without-Security-Header".equalsIgnoreCase(accessToken) ? null
-                    : Map.of("Authorization", "Bearer "+ accessToken);
+                            : Map.of("Authorization",  "Bearer "+ accessToken);
             BuyPriceResponse buyPriceSDKResponse= goldSDKMethods.sdkBuyPrice(headers);
             if (buyPriceSDKResponse.getData()!=null )
             {
@@ -295,8 +295,8 @@ public class GoldSDKTest extends BaseTest {
         }
         catch (Exception e)
         {
-            log.error("Exception in  Gold SDK buy Price", e);
-            softAssert.fail("Gold SDK buy Price: " + e.getMessage());
+            log.error("Exception while fetching user details", e);
+            softAssert.fail("Fetch SDK buy gold failed: " + e.getMessage());
         }
         finally
         {
