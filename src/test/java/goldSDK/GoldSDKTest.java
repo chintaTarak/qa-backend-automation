@@ -164,6 +164,7 @@ public class GoldSDKTest extends BaseTest {
 
 
     @Test(
+            priority = 5,
             description = "Initiate Auto Pay and validate response",
             dataProvider = "initiateAutoPay",
             dataProviderClass = GoldSDKDataProvider.class,
@@ -188,7 +189,7 @@ public class GoldSDKTest extends BaseTest {
      * Used later for file upload and KYC initiation.
      */
     @Test(priority = 6, description = "Upload document and get presigned URL", dataProvider = "uploadDocTypes", dataProviderClass = GoldSDKDataProvider.class)
-    public void uploadDocument(String accessToken, String kycDocType) {
+    public void uploadKycDocument(String accessToken, String kycDocType) {
         Map<String, String> headers =
                 accessToken == null ? null : Map.of("Authorization", accessToken);
         UploadResponse response = goldSDKMethods.upload(headers);
@@ -205,8 +206,8 @@ public class GoldSDKTest extends BaseTest {
      * Depends on uploadDocument execution.
      */
 
-    @Test(priority = 7, description = "Upload file using presigned URL", dataProvider = "uploadDocTypes", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadDocument")
-    public void uploadFile(String accessToken, String kycDocType) throws Exception {
+    @Test(priority = 7, description = "Upload file using presigned URL", dataProvider = "uploadKycFiles", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadKycDocument")
+    public void uploadKycFile(String kycDocType) throws Exception {
         String fileName = kycDocType.equals("PAN") ? "testData/PanCard.jpeg" : "testData/AadhaarCard.jpeg";
         URL resource = getClass().getClassLoader().getResource(fileName);
         if (resource == null) {
@@ -223,7 +224,7 @@ public class GoldSDKTest extends BaseTest {
      * Injects uploaded document imageId and validates API + DB status.
      * Depends on successful file upload.
      */
-    @Test(priority = 8, description = "Initiate KYC", dataProvider = "initiateKycScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadFile")
+    @Test(priority = 8, description = "Initiate KYC", dataProvider = "initiateKycScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "uploadKycFile")
     public void initiateKyc(BaseKycRequest request, String accessToken, GoldSDKDataProvider.ExpectedError expectedError) {
         String imageId;
         String kycDocType;
@@ -260,7 +261,7 @@ public class GoldSDKTest extends BaseTest {
      * Validates response fields and DB verification status.
      * Depends on successful KYC initiation.
      */
-    @Test(priority = 10, description = "Fetch KYC status", dataProvider = "kycStatusScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "initiateKyc")
+    @Test(priority = 9, description = "Fetch KYC status", dataProvider = "kycStatusScenarios", dataProviderClass = GoldSDKDataProvider.class, dependsOnMethods = "initiateKyc")
     public void getKycStatus(String accessToken, String kycDocType, GoldSDKDataProvider.ExpectedError expectedError) {
         try {
             Map<String, String> headers = accessToken == null ? null : Map.of("Authorization", accessToken);
@@ -277,7 +278,7 @@ public class GoldSDKTest extends BaseTest {
      * Fetch  buy price for SDK . Depends on successful authentication.
      */
 
-    @Test(description = "Fetch Gold SDK buy Price",dataProvider = "getBuyPriceSDKScenarios",dataProviderClass = GoldSDKDataProvider.class,priority = 5)
+    @Test(priority = 10, description = "Fetch Gold SDK buy Price",dataProvider = "getBuyPriceSDKScenarios",dataProviderClass = GoldSDKDataProvider.class)
     public void fetchSDKBuyGoldPrice(String accessToken, GoldSDKDataProvider.ExpectedError expectedError, ITestContext context)
     {
         try
@@ -296,7 +297,7 @@ public class GoldSDKTest extends BaseTest {
         catch (Exception e)
         {
             log.error("Exception while fetching user details", e);
-            softAssert.fail("Get User test failed: " + e.getMessage());
+            softAssert.fail("fetch SDK buy gold failed: " + e.getMessage());
         }
         finally
         {
