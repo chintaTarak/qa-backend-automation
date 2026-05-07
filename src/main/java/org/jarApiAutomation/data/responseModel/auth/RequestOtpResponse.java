@@ -1,20 +1,23 @@
 package org.jarApiAutomation.data.responseModel.auth;
 
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import lombok.Builder;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
 import org.jarApiAutomation.data.responseModel.CommonResultModel;
+import org.jarApiAutomation.data.responseModel.auth.responseBuyGold.BuyGoldResponse;
 
 @Data
-@EqualsAndHashCode(callSuper = true)
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RequestOtpResponse extends CommonResultModel {
-
-    private DataResponse data;
-
+ private Boolean success;
+ private DaResponse data;
     @Data
-    public static class DataResponse {
-        private String reqId;
-        private int length;
-    }
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class DaResponse{
+     private String reqId;
+     private int length;
+ }
+
+
 }

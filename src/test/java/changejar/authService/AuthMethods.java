@@ -17,63 +17,43 @@ import org.jarApiAutomation.utils.CommonSerializationUtil;
 
 public class AuthMethods {
 
-    private final ApiRequests apiRequests = new ApiRequests();
+  private final ApiRequests apiRequests = new ApiRequests();
 
-    public RequestOtpResponse requestOTP(Map<String, Object> queryParams) {
-        RestRequest req =
-                RestRequest.builder()
-                        .headers(Map.of("content-type", "application/json"))
-                        .url(
-                                getApiEndPoint(
-                                        BaseUri.STAGING_BASE_URI,
-                                        BaseUri.V2,
-                                        AuthServiceEndpoints.REQUEST_OTP))
-                        .queryParams(queryParams)
-                        .build();
-        Response response = apiRequests.post(req);
-        RequestOtpResponse deserializedResponse =
-                CommonSerializationUtil.readObject(
-                        response.getBody().asString(), RequestOtpResponse.class);
-        deserializedResponse.setStatusCode(response.getStatusCode());
-        return deserializedResponse;
-    }
 
-    public VerifyOtpResponse verifyOtp(VerifyOtpRequest verifyOtpReq) {
-        RestRequest req =
-                RestRequest.builder()
-                        .url(
-                                getApiEndPoint(
-                                        BaseUri.STAGING_BASE_URI,
-                                        BaseUri.V2,
-                                        AuthServiceEndpoints.VERIFY_OTP))
-                        .body(verifyOtpReq)
-                        .build();
-        Response response = apiRequests.post(req);
-        VerifyOtpResponse deserializedResponse =
-                CommonSerializationUtil.readObject(
-                        response.getBody().asString(), VerifyOtpResponse.class);
-        deserializedResponse.setStatusCode(response.getStatusCode());
-        return deserializedResponse;
-    }
+public RequestOtpResponse requestOTP(Map<String, Object> phoneNumber){
+    RestRequest req = RestRequest.builder().url(getApiEndPoint(BaseUri.STAGING_BASE_URI,
+            BaseUri.V2,
+            AuthServiceEndpoints.REQUEST_OTP)).queryParams(phoneNumber).build();
+    Response response = apiRequests.post(req);
+    RequestOtpResponse deserilizationResponse = CommonSerializationUtil.readObject(response.getBody().asString(),RequestOtpResponse.class);
+    deserilizationResponse.setStatusCode(response.getStatusCode());
+    return deserilizationResponse;
 
-    public FetchOtpResponse fetchOtp(Map<String, Object> queryParams, Map<String, String> headers) {
-        RestRequest req =
-                RestRequest.builder()
-                        .url(
-                                getApiEndPoint(
-                                        BaseUri.STAGING_BASE_URI,
-                                        BaseUri.V1,
-                                        AuthServiceEndpoints.FETCH_OTP))
-                        .queryParams(queryParams)
-                        .headers(headers)
-                        .build();
+}
+
+    public FetchOtpResponse fetchOtp(Map<String, Object> phoneNumber, Map<String, String> token){
+        RestRequest req = RestRequest.builder().url(getApiEndPoint(BaseUri.STAGING_BASE_URI,
+                BaseUri.V1,
+                AuthServiceEndpoints.FETCH_OTP)).headers(token).queryParams(phoneNumber).build();
         Response response = apiRequests.get(req);
-        FetchOtpResponse deserializedResponse =
-                CommonSerializationUtil.readObject(
-                        response.getBody().asString(), FetchOtpResponse.class);
-        deserializedResponse.setStatusCode(response.getStatusCode());
-        return deserializedResponse;
+        FetchOtpResponse deserilizationResponse = CommonSerializationUtil.readObject(response.getBody().asString(), FetchOtpResponse.class);
+        deserilizationResponse.setStatusCode(response.getStatusCode());
+        return deserilizationResponse;
+
+
     }
+
+    public VerifyOtpResponse verifyOtp(VerifyOtpRequest VerifyOtpreq){
+        RestRequest req = RestRequest.builder().
+                url(getApiEndPoint(BaseUri.STAGING_BASE_URI,
+                BaseUri.V2,
+                AuthServiceEndpoints.VERIFY_OTP)).body(VerifyOtpreq).build();
+        Response response = apiRequests.post(req);
+        VerifyOtpResponse deserilizationResponse = CommonSerializationUtil.readObject(response.getBody().asString(), VerifyOtpResponse.class);
+        deserilizationResponse.setStatusCode(response.getStatusCode());
+        return deserilizationResponse;
+    }
+
 
     public Response resetOtpLimit(String countryCode, String phoneNumber) {
         ResetOtpRequest resetOtp = new ResetOtpRequest();

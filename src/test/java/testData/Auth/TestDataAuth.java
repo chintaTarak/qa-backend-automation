@@ -1,14 +1,13 @@
 package testData.Auth;
 
 public class TestDataAuth {
-    public static final String COUNTRY_CODE = "91";
     public static final String PHONE_NUMBER_ADMIN = "9999911111";
     public static final String OTP = "123456";
     public static final String ADVERTISING_ID = "test";
 
     // Primary phone numbers for testing
-    public static final String PHONE_NUMBER = "2894567812"; // main test number
-    public static final String TEST_PHONE_NUMBER = "2894567815"; // secondary/test number
+    public static final String PHONE_NUMBER = "1234567892"; // main test number
+    public static final String TEST_PHONE_NUMBER = "1234567890"; // secondary/test number
 
     // Admin token
     public static final String ADMIN_TOKEN =

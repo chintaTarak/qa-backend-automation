@@ -10,7 +10,7 @@
     <parameter name="dbServer" value="changejar"/>
     <test name="Auth API Tests">
         <classes>
-<!--            <class name="changejar.authService.AuthServiceTest"/>-->
+            <class name="changejar.authService.AuthServiceTest"/>
             <class name="activation.manualBuyGold.BuyGoldTest"></class>
         </classes>
     </test>

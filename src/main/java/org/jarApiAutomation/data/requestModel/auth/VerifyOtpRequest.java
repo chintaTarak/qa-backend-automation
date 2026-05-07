@@ -6,25 +6,18 @@ import lombok.Data;
 @Data
 @Builder
 public class VerifyOtpRequest {
-    private String countryCode;
-    private String phoneNumber;
+
     private String otp;
+    private String phoneNumber;
     private String reqId;
-    private boolean logoutFromOtherDevices;
-    private DeviceDetails deviceDetails;
 
-    @Data
-    public static class DeviceDetails {
-        private String advertisingId;
+    public static VerifyOtpRequest verifyPayload(String otp,String phoneNumber,String reqId ){
+      return VerifyOtpRequest.builder()
+              .phoneNumber(phoneNumber).
+              otp(otp).
+              reqId(reqId)
+              .build();
     }
 
-    public static VerifyOtpRequest verifyOtpPayload(
-            String countryCode, String phoneNumber, String otp, String reqId) {
-        return VerifyOtpRequest.builder()
-                .countryCode(countryCode)
-                .phoneNumber(phoneNumber)
-                .otp(otp)
-                .reqId(reqId)
-                .build();
-    }
+
 }

@@ -29,9 +29,7 @@ public class AuthServiceHelper {
         // Request OTP
         RequestOtpResponse requestOtpResponse =
                 authMethods.requestOTP(
-                        Map.of(
-                                "countryCode", COUNTRY_CODE,
-                                "phoneNumber", TEST_PHONE_NUMBER));
+                        Map.of("phoneNumber", TEST_PHONE_NUMBER));
 
         if (!requestOtpResponse.isSuccess() || requestOtpResponse.getData() == null) {
             throw new RuntimeException("Request OTP failed");
@@ -55,8 +53,7 @@ public class AuthServiceHelper {
 
         // Verify OTP
         VerifyOtpRequest verifyOtpRequest =
-                VerifyOtpRequest.verifyOtpPayload(
-                        COUNTRY_CODE, TEST_PHONE_NUMBER, otp, reqId);
+                VerifyOtpRequest.verifyPayload(otp, TEST_PHONE_NUMBER, reqId);
 
         VerifyOtpResponse verifyOtpResponse =
                 authMethods.verifyOtp(verifyOtpRequest);
